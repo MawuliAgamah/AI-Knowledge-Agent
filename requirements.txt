@@ -1,0 +1,15 @@
+pandas 
+openpyxl
+python-dotenv 
+streamlit 
+openai
+huggingface_hub
+PyPDF2 
+pyautogen
+langchain 
+spacey 
+notebook
+ipykernel
+nltk
+pypdf
+
