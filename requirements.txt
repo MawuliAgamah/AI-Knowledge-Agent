@@ -12,4 +12,8 @@ notebook
 ipykernel
 nltk
 pypdf
+chromadb 
+tiktoken 
+docx2txt
+python-dotenv
 
