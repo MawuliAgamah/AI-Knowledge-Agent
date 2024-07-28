@@ -1,4 +1,5 @@
 .env
+db
 .git
 .DS_Store
 

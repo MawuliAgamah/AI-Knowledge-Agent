@@ -1,87 +1,79 @@
+import os
+from dotenv import load_dotenv
 from langchain.text_splitter import CharacterTextSplitter
-from  langchain.embeddings import OpenAIEmbeddings
+from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.document_loaders import PyPDFLoader
 from langchain.vectorstores import Chroma
+from langchain.chains import RetrievalQA
+from langchain.llms import OpenAI
 
 
 class DocumentHandler():
-    """
-    This takes in URLS 
-    Converts them to a langchain document ready to be stored 
-    in the DB
- 
-    Args:
-        document_path (str): The path to the document.
-    Returns:
-        document_path (str): The path to the document.
-    """
     def __init__(self):
-            #self.document_path = document_path
-            self.document_path = "/Users/mawuliagamah/gitprojects/langchain/data/The Last Question.pdf"
-            
+        # Path to the document
+        self.document_path = "/Users/mawuliagamah/gitprojects/langchain/data/CS_Behaviours_2018.pdf"
+
     def process_document(self):
+        # Load document using py dpf loader
         loader = PyPDFLoader(self.document_path)
         document = loader.load()
-        text_splitter = CharacterTextSplitter(chunk_size=1000,chunk_overlap=200)
-        documents = text_splitter.split_documents(document)        
+        text_splitter = CharacterTextSplitter(
+            chunk_size=1000, chunk_overlap=200)
+        documents = text_splitter.split_documents(document)
         return documents
 
 
-#class database():
-#    """
-#    Class to load in and read PDF files.
-# 
-#    Args:
-#    
-#    Returns:
-#        string: 
-#    """
-#    def __init__(self):
-#            self.data = []
+class VectorDBManager():
+    def __init__(self, document):
+        self.document = document
+        self.db_directory = "/Users/mawuliagamah/gitprojects/langchain/data"
+        self.vectordb = None
+
+    def initialize_vectordb(self):
+        load_dotenv()
+        api_key = os.getenv('OPENAI_API_KEY')
+        self.vectordb = Chroma.from_documents(
+            self.document,
+            embedding=OpenAIEmbeddings(openai_api_key=api_key),
+            persist_directory="/Users/mawuliagamah/gitprojects/langchain/data"
+        )
+        self.vectordb.persist()  # Save the data to the disk
+        return (print("saved to f'{self.db_directory}"))
+
+    def get_vectordb(self):
+        if self.vectordb is None:
+            raise ValueError(
+                "VectorDB has not been initialized. Call initialize_vectordb first.")
+        return self.vectordb
 
 
+class Model():
+    def __init__(self, vectordb_manager):
+        self.vectordb_manager = vectordb_manager
 
-#class model():
-#    def __init__self(prompt):
-#
-#
-#        self.prompt = prompt
+    def chat(self, prompt):
+        vectordb = self.vectordb_manager.get_vectordb()
+        retriever = vectordb.as_retriever(search_kwargs={'k': 7})
+        qa_chain = RetrievalQA.from_chain_type(
+            llm=OpenAI(),
+            retriever=retriever,
+            return_source_documents=True
+        )
+        result = qa_chain({'query': prompt})
+        return print(result['result'])
 
-
-# Instantiate the Data with an initial value
-#my_object = Container()
-# Instantiate the Data with an initial value
-
-
-
-
-
-
-
-
-
-# Instantiate the class with an initial value
-#database = database()
-
-
-# 
-#database.storeData()
-
-#dbData = database.retrieveData() # Get the data
-
-
-
-#model = languageModel(llm,dbData,return)
-# Use the object's method to display the value
-#model.answer()  # Output: 10
-    
 
 def main():
+
     document_handler = DocumentHandler()
     processed_documents = document_handler.process_document()
-    print(processed_documents)
+    vectordb_manager = VectorDBManager(processed_documents)
+    vectordb_manager.initialize_vectordb()
+    model = Model(vectordb_manager)
+    response = model.chat(input("Ask me something : "))
+    return response
+
 
 if __name__ == "__main__":
     main()
-    

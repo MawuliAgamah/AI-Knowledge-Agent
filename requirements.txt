@@ -16,4 +16,7 @@ chromadb
 tiktoken 
 docx2txt
 python-dotenv
-
+markdown
+typing_extensions
+requests
+'transformers[torch]'
