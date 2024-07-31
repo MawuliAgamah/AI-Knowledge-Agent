@@ -2,10 +2,11 @@ from langchain_community.document_loaders import Docx2txtLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.text_splitter import CharacterTextSplitter
 import glob 
-from docx import Document
+from docx import Document as Doc
 from gensim.parsing.preprocessing import remove_stopwords
 from nltk.stem import *
 import nltk
+from langchain_community.document_loaders import TextLoader
 # nltk.download('punkt')
 # nltk.download('wordnet')
 
@@ -14,52 +15,23 @@ class Document:
     pass 
 
 
-def load_documents():
-    """
-    Langchain Data loader 
-    """
-    #print("#------------------------------------------ Meta Data ------------------------------------------ ")
-    documents = []
-    for path in glob.glob("/Users/mawuliagamah/gitprojects/STAR/data/documents/word/*.docx"):
-        loader = Docx2txtLoader(path)
-        data = loader.load()
-        documents.append(data)
-
-        #for doc in data:
-        #    print(doc.metadata)
-    #print("#------------------------------------------ Actual Data ------------------------------------------ ")
-    #print(documents)
-    
-    return documents
 
 
     
-
-
-
-def load_documents2(document_path):
-    """
-    Langchain Data loader 
-    """
+def load_documents(document_path):
     #print("#------------------------------------------ Meta Data ------------------------------------------ ")
     documents = []
     for path in glob.glob(document_path):
-        word_doc = Document(path)
+        word_doc = Doc(path)
         documents.append(word_doc)
-    
-    # Convert document into a single string 
+
     return documents
 
 def convert_to_plain_text(document,idx):
     fullText = []
     for para in document.paragraphs:
         fullText.append(para.text)
-
     fullText = '\n'.join(fullText)
-
-    #with open(f"/Users/mawuliagamah/gitprojects/STAR/data/documents/txt/document{idx}.txt", "w", encoding="utf-8") as txt_file:
-    #    txt_file.write(fullText)
-
     return fullText
 
 def split_document(document):
@@ -70,48 +42,46 @@ def split_document(document):
 
 
 
-
 def pre_process(document):
-
-    """Applies pre-processing step to all of our data """
-    document = document.lower()
-    #ps = nltk.stemmer.PorterStemmer()document = remove_stopwords(document)
-    
-    # Stemming 
-
+    document = document.lower()    
     stemmer = PorterStemmer()
     lemmertizer = WordNetLemmatizer()
-
     #document = ' '.join(stemmer.stem(token) for token in nltk.word_tokenize(document))
     document = ' '.join(lemmertizer.lemmatize(token) for token in nltk.word_tokenize(document))
     document = remove_stopwords(document)
-
-
-    # Make all text in the document lower case 
     return document  
 
 
-def document_processor():
-    docs = load_documents2()
 
+def document_processor(path):
+    # Load documents and store them in a list ("Could be worth storing documents in a dictionary as such")
+    # So we can begin to then incorperate document metadata 
+
+    docs = load_documents(document_path=path)
+
+    # Apply pre-processing to each of the documents we have 
     processed_documents = []
     for idx,doc in enumerate(docs):
-
         string = convert_to_plain_text(doc,idx)
         processed_string = pre_process(string)
         processed_documents.append(processed_string)
-    
-    return processed_documents
-    
-
-from langchain_community.document_loaders import TextLoader
 
 
-def langchain_documnet_loader():
-    pass 
+    # Store documents to file as a txt.file and then load this into Lanchain 
+    langchain_docs = []
+    for idx,doc in enumerate(processed_documents):
+        with open(f"/Users/mawuliagamah/gitprojects/STAR/data/documents/txt/processed_file_{idx}.txt", "w") as text_file:
+           text_file.write(doc)
+           loader = TextLoader(f"/Users/mawuliagamah/gitprojects/STAR/data/documents/txt/processed_file_{idx}.txt")
+           data = loader.load()
+           langchain_docs.append(data)
+    
+    # Return documents 
+    return langchain_docs
     
 
-    
+
+
 if __name__ == "__main__":
     path = "/Users/mawuliagamah/gitprojects/STAR/data/documents/word/*.docx"
     document_processor(path)

@@ -131,10 +131,9 @@ def main():
 
     
     # Load all of the relevant documents into a vector DB
-    documents = load_documents()
-    chunks_list =[]
-
-    
+    #documents = load_documents()
+    documents = document_processor(path ="/Users/mawuliagamah/gitprojects/STAR/data/documents/word/*.docx")
+    chunks_list =[]    
     for doc in documents:
         chunks = split_document(doc)
         chunks_list.append(chunks)
@@ -145,6 +144,8 @@ def main():
     from chroma_utils import get_chroma_client,add_item_to_chroma_db
 
     chorma_client = get_chroma_client()
+    chorma_client.delete_collection(name="word_documents")
+
     chroma_collection = chorma_client.get_or_create_collection(name = "word_documents" ,embedding_function = embedding_function)
 
     
@@ -167,7 +168,6 @@ def main():
     
     for idx,query in enumerate(queries):
         from chroma_utils import query_vector_db
-
         print(f"Input query [{idx+1}]: {query}")
 
         output = query_vector_db(query= query , collection = chroma_collection )
@@ -177,48 +177,3 @@ def main():
 
     
 
-
-
-
-
-
-
-
-    #chorma_client = ChormaClient(persist_directory='/Users/mawuliagamah/gitprojects/STAR/db')
-    #chroma_collection = chorma_client.get_or_create_collection(name = "word_documents",embedding_function = embedding_function)
-
-    # USE LANGUAGE MODEL TO TAG AND CREATE THE META DATA CONTENT FOR CHORMA DB BEFORE THEN GOING INTO CHROMA 
-    # Store chunks in Chroma DB
-
-    #items = chroma_collection.get()
-
-
-    #col = client.get_or_create_collection("word_documents")
-
-    #for chunk in chunks_list:
-    #    print("Before :",chroma_collection.count())
-    #    for ids,i in zip(range(len(chunk)),chunk):
-    #        print(i.page_content)
-    #        chroma_collection.add(
-    #            documents = i.page_content,
-    #            metadatas = [{"source":i.metadata['source']}],
-    #            ids = [str(ids)]
-    #        )
-    #        print("After :",chroma_collection.count())
-
-        #vector_db_query_generator()
-        #result = query_documents(llm =llm_executor ,vectordb=retreiver,query = tasks['task_description'])
-        #print("Executor : ",result)
-
-
-
-    #planner_agent = TaskPlanner()
-    #task_breakdown = planner_agent.decompose_task()
-    #vectordb = Chroma.from_documents(chunks_list,embedding=OpenAIEmbeddings(),persist_directory='./db')
-        #vectordb = create_retreiver(chunks)
-        #vectordb.persist() # Save the data to the disk
-    
-    #retreiver = vectordb.as_retriever
-    #retreiver = create_retreiver(documents)
-
-    # Create the task planning AI agent and ask it to decompose the task
