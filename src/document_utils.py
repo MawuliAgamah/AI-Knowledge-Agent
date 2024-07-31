@@ -105,8 +105,9 @@ from langchain.chains.llm import LLMChain
 from dotenv import load_dotenv
 import os 
 
-def create_document_summary(path):
 
+
+def create_document_summary(path):
 
     # Load the document here first 
     docoument = load_document_lngchn(path)
@@ -127,14 +128,17 @@ def create_document_summary(path):
 
     reduce_chain = LLMChain(prompt=reduce_prompt, llm=llm)
 
-    ReduceDocumentsChain(
-        combine_documents_chain = 
+    combine_documents_chain = StuffDocumentsChain(llm_chain= reduce_chain, document_variable_name="doc_summaries")
+
+    reduce_documents_chain = ReduceDocumentsChain(
+        combine_documents_chain = combine_documents_chain,
+        collapse_documents_chain = combine_documents_chain
     )
 
     map_reduce_chain = MapReduceDocumentsChain(
     llm_chain=map_chain,
     document_variable_name="content",
-    reduce_documents_chain=reduce_chain
+    reduce_documents_chain=reduce_documents_chain
     )
 
     """This takes in our docuemnt and produces a summary of it using map reducece"""
@@ -210,7 +214,7 @@ document_tamplate = {
 
 if __name__ == "__main__":
     # path = "/Users/mawuliagamah/gitprojects/STAR/data/documents/word/*.docx"
-    path = "/Users/mawuliagamah/gitprojects/STAR/data/documents/word/CV.docx"
+    path = "/Users/mawuliagamah/gitprojects/STAR/data/documents/word/Job Adverts.docx"
     document_summary = create_document_summary(path)
     print(document_summary)
 
