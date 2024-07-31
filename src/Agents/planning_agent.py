@@ -14,7 +14,7 @@ class TaskPlanner:
 
 
     def decompose_task(self):
-        from src.prompt import  UserPrompt
+        from src.prompts.prompt import  UserPrompt
         from openai import OpenAI
         import json
 
@@ -84,4 +84,3 @@ class Agent():
     
     def __init__(self,role):
         self.role = role 
-        

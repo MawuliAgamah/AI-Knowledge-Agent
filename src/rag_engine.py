@@ -125,7 +125,7 @@ def create_or_get_chromadb():
 
 
 def main():
-    from prompt import  BroadUserPrompt, Planner_prompt  , example_json 
+    from src.prompts.prompt import  BroadUserPrompt, Planner_prompt  , example_json 
     from document_utils import document_processor
 
 

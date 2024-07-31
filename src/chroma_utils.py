@@ -34,7 +34,6 @@ def get_chroma_client():
 
 def add_item_to_chroma_db(collection,item,metadata,id_num):
     """Function which adds/stores items to the Chroma DB
-    
     """
     # Does the item exist in my collection?
     collection_ids = collection.get(include=[])
