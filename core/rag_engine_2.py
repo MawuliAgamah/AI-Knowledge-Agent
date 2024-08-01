@@ -125,36 +125,40 @@ def create_or_get_chromadb():
 
 
 def main():
-    from src.prompts.prompt import  BroadUserPrompt, Planner_prompt  , example_json 
+    from core.prompts.prompt import  BroadUserPrompt, Planner_prompt  , example_json 
     from document_utils import document_processor
+    from chroma_utils import get_chroma_client,add_item_to_chroma_db
 
 
     
     # Load all of the relevant documents into a vector DB
-    #documents = load_documents()
     documents = document_processor(path ="/Users/mawuliagamah/gitprojects/STAR/data/documents/word/*.docx")
+
+    # Chunk the documents 
     chunks_list =[]    
     for doc in documents:
         chunks = split_document(doc)
         chunks_list.append(chunks)
 
-
+    # Create the emebeddding fucntion 
     embedding_function = OpenAIEmbeddingFunction(api_key= os.environ.get('OPENAI_API_KEY'), model_name="text-embedding-ada-002")
 
-    from chroma_utils import get_chroma_client,add_item_to_chroma_db
-
+    # Set up the DB and the Chroma Client
     chorma_client = get_chroma_client()
-    chorma_client.delete_collection(name="word_documents")
+    chorma_client.delete_collection(name="word_documents") # Reset the colleciton 
 
+    # Create a Chroma collection
     chroma_collection = chorma_client.get_or_create_collection(name = "word_documents" ,embedding_function = embedding_function)
 
-    
+    # Inject meta data into embedding
+
+    # Embed documents into Chroma DB 
     for chunk in chunks_list:
         for idx,item in enumerate(chunk):
             add_item_to_chroma_db( collection = chroma_collection, item = item.page_content, metadata = {"source":item.metadata['source']} , id_num=  str(idx) )
 
     
-    
+    # Query Docuemnts 
     planner_json_output = planner_agent(Planner_prompt,example_json)
 
     queries = []

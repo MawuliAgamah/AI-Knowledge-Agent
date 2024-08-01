@@ -1,0 +1,31 @@
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Created document template
+INFO:root:Document Loaded
+INFO:root:Document Pre-Processed

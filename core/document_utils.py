@@ -1,11 +1,41 @@
-from langchain_community.document_loaders import Docx2txtLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.text_splitter import CharacterTextSplitter
+import os 
 import glob 
+import logging
+
+
+# Create and configure logger
+logging.basicConfig(filename='./extract-log.txt', level=logging.INFO)
+logging.basicConfig(filename='./extract-error-log.txt', level=logging.ERROR)
+
+
+from pathlib import Path
+from dotenv import load_dotenv
+
+
+load_dotenv(Path("/Users/mawuliagamah/gitprojects/STAR/.env"))
+
+import nltk
 from docx import Document as Doc
 from gensim.parsing.preprocessing import remove_stopwords
 from nltk.stem import *
-import nltk
+
+
+
+from langchain.text_splitter import TokenTextSplitter
+from langchain.chains import MapReduceDocumentsChain,ReduceDocumentsChain
+from langchain.chains.combine_documents.stuff import StuffDocumentsChain
+
+from langchain.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain.chains.llm import LLMChain
+
+
+
+from langchain_community.document_loaders import Docx2txtLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.text_splitter import CharacterTextSplitter
+
+
 from langchain_community.document_loaders import TextLoader
 # nltk.download('punkt')
 # nltk.download('wordnet')
@@ -15,33 +45,19 @@ from langchain_community.document_loaders import TextLoader
 from prompts.document_prompts import map_template,reduce_template  
 
 
-# The Document Class is concerned with building a docment 
-class Document:
-    def __init__self(self):
-        self.document = None
-    
-
-
-    def make_document(self):
-        pass
-     
-
-
-
+from core.agents.document_agent import DocumentAgent
 
 
 
     
 def load_documents(document_path):
-    #print("#------------------------------------------ Meta Data ------------------------------------------ ")
+    logging.info("Loading documents")
+
     documents = []
     for path in glob.glob(document_path):
         word_doc = Doc(path)
         documents.append(word_doc)
     return documents
-
-
-
 
 
 
@@ -73,45 +89,10 @@ def pre_process(document):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-from langchain_community.document_loaders import Docx2txtLoader
-
 def load_document_lngchn(path):
     loader = Docx2txtLoader(path)
     doc = loader.load()
     return doc
-
-
-from pathlib import Path
-from dotenv import load_dotenv
-load_dotenv(Path("/Users/mawuliagamah/gitprojects/STAR/.env"))
-
-
-from langchain.text_splitter import TokenTextSplitter
-from langchain.chains import MapReduceDocumentsChain,ReduceDocumentsChain
-
-from langchain.chains.combine_documents.stuff import StuffDocumentsChain
-
-from langchain.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
-from langchain.chains.llm import LLMChain
-from dotenv import load_dotenv
-import os 
-
-
-
-
 
 
 
@@ -134,8 +115,6 @@ def make_document(path):
 
 
 def create_document_summary(document_object,llm):
-
-
     # path_to_document = document_object['metadata']['path']
     # Load the document here first 
     docoument = document_object['document']
@@ -153,14 +132,9 @@ def create_document_summary(document_object,llm):
     combine_documents_chain = StuffDocumentsChain(llm_chain= reduce_chain, document_variable_name="doc_summaries")
 
     reduce_documents_chain = ReduceDocumentsChain(combine_documents_chain = combine_documents_chain, collapse_documents_chain = combine_documents_chain)
-
     map_reduce_chain = MapReduceDocumentsChain(llm_chain=map_chain,document_variable_name="content",reduce_documents_chain=reduce_documents_chain)
-
     document_summary = map_reduce_chain.run(document)
-
-
     document_object['summary'] = document_summary
-
     return document_object  
 
 
@@ -241,50 +215,66 @@ def document_processor(path):
 
 """
 
-"""
-"Each document will be stored in this sort of dictionairy object, in the future this will be a class which. 
-Holds document instances, the attributes will be as below, and then the things we do to the "
-document_tamplate = {
-    "document":"DOCUMENT_OBJECT",
-    "summary":"DOCUMENT_SUMMARY",
-    "metadata":{
-        "file_name":"file_name",
 
-        "document_type":"word document",
-        "Category":"abc",
-    }
-}
+from langchain_community.document_loaders import Docx2txtLoader
 
-"""
+# The Document Class is concerned with building a docment 
+class DocumentBuilder:
+    def __init__self(self):
+        self.name = "document builder" 
+        
+    def load_document_lngchn(path):
+        loader = Docx2txtLoader(path)
+        doc = loader.load()
+        return doc
 
 
+    def make_document(self):
+        pass
 
-
-
-
-#def document(agent):
+    def chunk_document(self):
+        self
 
 
 
-#    return document_object
+
+class Document:
+    def __init__(self,path,llm):
+        self.document
+        self.document_builder = DocumentBuilder()
+        self.llm = llm
+
+
+    def build(self,path):
+        loaded_doc = self.document_builder.load_document()
+        pass 
+
+
+    def get_document():
+        pass 
 
 
 
-    
 
 
+
+#llm = ChatOpenAI(model=model_name,api_key = os.environ.get('OPENAI_API_KEY'))
+#model_name = "gpt-3.5-turbo"
 
 if __name__ == "__main__":
-
-
+    
     path = "/Users/mawuliagamah/gitprojects/STAR/data/documents/word/Job Adverts.docx"
+    #llm = DocumentAgent()
+    #document = Document(path = path, llm = llm )
+    #document_object = document.build()
+
     model_name = "gpt-3.5-turbo"
     llm = ChatOpenAI(model=model_name,api_key = os.environ.get('OPENAI_API_KEY'))
 
 
     document_object = make_document(path)
     document_object = create_document_summary(document_object = document_object,llm = llm)
-    # document_object = create_document_metadata(document_object = document_object,llm = llm)
+    document_object = create_document_metadata(document_object = document_object,llm = llm)
 
 
     print(document_object['summary'])

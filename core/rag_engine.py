@@ -131,8 +131,9 @@ def main():
 
     
     # Load all of the relevant documents into a vector DB
-    #documents = load_documents()
     documents = document_processor(path ="/Users/mawuliagamah/gitprojects/STAR/data/documents/word/*.docx")
+
+    # Chunk the documents 
     chunks_list =[]    
     for doc in documents:
         chunks = split_document(doc)

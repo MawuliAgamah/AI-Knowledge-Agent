@@ -1,4 +1,4 @@
-from rag_engine import main
+from core.rag_engine_2 import main
 
 
 if __name__ == "__main__":
