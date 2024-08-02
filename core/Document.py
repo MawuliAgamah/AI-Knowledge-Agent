@@ -20,8 +20,6 @@ from gensim.parsing.preprocessing import remove_stopwords
 import nltk
 from nltk.stem import *
 
-
-
 class Document:
     """The Document Object Class"""
     def __init__(self,path):
@@ -29,6 +27,7 @@ class Document:
         "id":None,
         "path":path,
         "document": None,
+        "chunked_document":None,
         "summary": None,
         "metadata": {
             "title":None,
@@ -39,17 +38,24 @@ class Document:
         }
         }
 
-    
     def get_document(self):
         return self 
 
     def get_contents(self,contents):
+        """
+        Returns the contents of different attributes of the document.
+        self.contents['docuemnt'] currently stores the document as a langchain document, hence the raw text must be
+        is accessed via [0].page_contents
+
+        """
         if contents == "document":
             return self.contents['document']
         elif contents == "path":
             return self.contents['path']
         elif contents == "summary":
             return self.contents['summary']
+        elif contents == "chunked_document":
+            return self.contents['chunked_document']
         elif contents == "page_contents":
             return self.contents['document'][0].page_content
 
@@ -57,6 +63,12 @@ class Document:
         if contents == "page_content":
             self.contents['document'][0].page_content = payload
             return self
+        elif contents == "chunked_document":
+            self.contents['chunked_document'] = payload
+            return self
+        elif contents == "summary":
+            self.contents['summary'] = payload
+            return self 
         else:
             return ValueError('No implementation')
 
@@ -66,6 +78,7 @@ from prompts.document_prompts import map_template,reduce_template
 from langchain.prompts import PromptTemplate
 from langchain.chains import MapReduceDocumentsChain,ReduceDocumentsChain
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 class DocumentBuilder:
     """
@@ -117,8 +130,16 @@ class DocumentBuilder:
         params
         ------
         document_objecct : object
+
+        returns
+        -------
+        document_object : object
         """
-        pass 
+        docoument = document_object.get_contents("document") # Get the contents of the document contents from the document. This is a langchain document object.
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size = 1000, chunk_overlap = 5)
+        chunks = text_splitter.split_documents(docoument)
+        document_object = document_object.update("chunked_document", payload = chunks )
+        return document_object
 
 
     def inject_summary(self,document_object,llm):
@@ -137,29 +158,20 @@ class DocumentBuilder:
         ------
         The document object.
         """
-        # Get contents of document and chunk it.
-        docoument = document_object.get_contents("document") # Get the contents of the document contents from the document. This is a langchain document object.
-        document = self.chunk_document(document=docoument) # Split the text of the document into chunks.
-
-        # Implements map reduce using langchain
+        # We should encapsulate all of this into the LLM, so that its the llm that does the map reduce.        
+        # Create document summary via langchains map reduce -        document_summary = llm.map_reduce(map_prompt,reduce_prompt)
         map_prompt = PromptTemplate.from_template(map_template)
-        map_chain = llm(prompt = map_prompt)
         reduce_prompt = PromptTemplate.from_template(reduce_template)
-        reduce_chain = llm(prompt = reduce_prompt)
+ 
+        map_chain = llm.llm_chain(prompt = map_prompt)
+        reduce_chain = llm.llm_chain(prompt = reduce_prompt)
         combine_documents_chain = StuffDocumentsChain(llm_chain= reduce_chain, document_variable_name="doc_summaries")
         reduce_documents_chain = ReduceDocumentsChain(combine_documents_chain = combine_documents_chain, collapse_documents_chain = combine_documents_chain)
         map_reduce_chain = MapReduceDocumentsChain(llm_chain=map_chain,document_variable_name="content",reduce_documents_chain=reduce_documents_chain)
-        document_summary = map_reduce_chain.run(document)
-
-        # Update the document summary with the generated summary
-        document_object = document_object.update("summary", payload = document_summary)
-
+        chunked_dcoument = document_object.get_contents("chunked_document") # We use the chunked document to feed into langchain
+        document_summary = map_reduce_chain.run(chunked_dcoument) # Get contents of the chunked document to then send into the map reduce chain
+        document_object = document_object.update("summary", payload = document_summary) # Update the document summary with the generated summary
         return document_object  
-
-        
-
-        return document_object
-
 
 
 class DocumentPipeline:
@@ -192,6 +204,7 @@ class DocumentPipeline:
         document_template = self.document_builder.init(path = path_to_document)
         document = self.document_builder.load(document_object = document_template)
         document = self.document_builder.pre_process(document_object = document)
+        document = self.document_builder.chunk_document(document_object = document)
         document = self.document_builder.inject_summary(document_object = document , llm = self.llm) # Create the document summary using a language model 
         return document 
 

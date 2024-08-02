@@ -31,17 +31,32 @@ def planner_agent(prompt_template,output_format):
     output = json.loads(data)
     return output
 
+from langchain_openai import ChatOpenAI
+from langchain.chains.llm import LLMChain
+import os 
+
 
 class DocumentAgent:
+    """
+    Class creates a large language model used within the document pipeline
+
+    attr
+    ----
+    config : dict
+    dictionairy storing all of the configuration for the language model.
+    """
     def __init__(self,config):
         self.config = config
+        self.model = "gpt-3.5-turbo"
         logging.info("Document Agent Initialised")
 
 
+    def map_reduce(self,map_prompt,reduce_prompt):
+        pass
 
-    def run():
-        pass 
+        #return map_reduce_output 
 
-
-
-    
+    def llm_chain(self,prompt):
+        llm = ChatOpenAI(model = self.model, api_key = self.config['api_key'])
+        output = LLMChain(prompt=prompt, llm=llm)
+        return output

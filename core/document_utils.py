@@ -131,6 +131,7 @@ def create_document_summary(document_object,llm):
 
     reduce_documents_chain = ReduceDocumentsChain(combine_documents_chain = combine_documents_chain, collapse_documents_chain = combine_documents_chain)
     map_reduce_chain = MapReduceDocumentsChain(llm_chain=map_chain,document_variable_name="content",reduce_documents_chain=reduce_documents_chain)
+    
     document_summary = map_reduce_chain.run(document)
     document_object['summary'] = document_summary
     return document_object  
