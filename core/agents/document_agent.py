@@ -1,3 +1,8 @@
+import logging
+
+logging.basicConfig(filename='../logging/extract-log.txt', level=logging.INFO)
+logging.basicConfig(filename='../logging/extract-error-log.txt', level=logging.ERROR)
+
 
 def planner_agent(prompt_template,output_format):
     import json 
@@ -30,6 +35,7 @@ def planner_agent(prompt_template,output_format):
 class DocumentAgent:
     def __init__(self,config):
         self.config = config
+        logging.info("Document Agent Initialised")
 
 
 

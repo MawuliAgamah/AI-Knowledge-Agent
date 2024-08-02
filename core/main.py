@@ -1,16 +1,24 @@
-from config import llm_config
-from core.agents.document_agent import DocumentAgent 
-from core.document import Document 
 
+from agents.document_agent import DocumentAgent 
+from Document import DocumentPipeline , DocumentBuilder
+from config import llm_config
 
 if __name__ == '__main__':
-    
-    # Create the language model users throughout the application 
-    docuemnt_llm = DocumentAgent(config= llm_config)
-    document = Documnet(path = "PATH")
 
-    # Build the document up with the help of an LLM for use in RAG
-    document = document.build(llm = docuemnt_llm)
+    path = "/Users/mawuliagamah/gitprojects/STAR/data/documents/word/Job Adverts.docx"
+
+    document_builder = DocumentBuilder()
+
+    # Instantiate the document agent with the configuration
+    document_agent = DocumentAgent(config=llm_config)
+
+    # Instanstiate a document pipeline with a docment builder and the 
+    pipeline = DocumentPipeline(document_builder = document_builder ,llm = document_agent)
+
+    # Create a document object for a single document 
+    document_object = pipeline.build_document(path_to_document = path)
+
+    print(document_object.contents)
 
 
 
