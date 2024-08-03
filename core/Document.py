@@ -56,6 +56,8 @@ class Document:
             return self.contents['summary']
         elif contents == "chunked_document":
             return self.contents['chunked_document']
+        elif contents == "chunks":
+            return self.contents['chunked_document']
         elif contents == "page_contents":
             return self.contents['document'][0].page_content
 
@@ -166,12 +168,19 @@ class DocumentBuilder:
         map_chain = llm.llm_chain(prompt = map_prompt)
         reduce_chain = llm.llm_chain(prompt = reduce_prompt)
         combine_documents_chain = StuffDocumentsChain(llm_chain= reduce_chain, document_variable_name="doc_summaries")
+        logging.info(f"Combine document chain : {combine_documents_chain}")
         reduce_documents_chain = ReduceDocumentsChain(combine_documents_chain = combine_documents_chain, collapse_documents_chain = combine_documents_chain)
+        logging.info(f"Combine document chain : {reduce_documents_chain}")
         map_reduce_chain = MapReduceDocumentsChain(llm_chain=map_chain,document_variable_name="content",reduce_documents_chain=reduce_documents_chain)
+        logging.info(f"{map_reduce_chain}")
         chunked_dcoument = document_object.get_contents("chunked_document") # We use the chunked document to feed into langchain
         document_summary = map_reduce_chain.run(chunked_dcoument) # Get contents of the chunked document to then send into the map reduce chain
         document_object = document_object.update("summary", payload = document_summary) # Update the document summary with the generated summary
         return document_object  
+
+    def inject_meta_data(self,document_object_llm):
+        pass
+
 
 
 class DocumentPipeline:
@@ -214,14 +223,14 @@ class DocumentPipeline:
 
 
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
     
-    path = "/Users/mawuliagamah/gitprojects/STAR/data/documents/word/Job Adverts.docx"
+#    path = "/Users/mawuliagamah/gitprojects/STAR/data/documents/word/Job Adverts.docx"
 
-    document_builder = DocumentBuilder()
-    document_agent = DocumentAgent(config=config)
+#    document_builder = DocumentBuilder()
+#    document_agent = DocumentAgent(config=config)
 
-    pipeline = DocumentPipeline(document_builder = document_builder ,llm = document_agent)
-    document_object = pipeline.build_document(path_to_document = path)
+#    pipeline = DocumentPipeline(document_builder = document_builder ,llm = document_agent)
+#    document_object = pipeline.build_document(path_to_document = path)
 
-    print(document_object.contents)
+#    print(document_object.contents)

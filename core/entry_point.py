@@ -1,4 +1,4 @@
-from core.rag_engine_2 import main
+from archive.rag_engine_2 import main
 
 
 if __name__ == "__main__":

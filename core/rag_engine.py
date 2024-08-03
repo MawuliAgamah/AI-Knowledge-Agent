@@ -34,7 +34,7 @@ from openai import OpenAI
 import json
 
 # My own utils 
-from document_utils import load_documents, split_document
+from core.utils.document_utils import load_documents, split_document
 
 
 # Functions 
@@ -126,7 +126,7 @@ def create_or_get_chromadb():
 
 def main():
     from core.prompts.prompt import  BroadUserPrompt, Planner_prompt  , example_json 
-    from document_utils import document_processor
+    from core.utils.document_utils import document_processor
 
 
     
@@ -142,7 +142,7 @@ def main():
 
     embedding_function = OpenAIEmbeddingFunction(api_key= os.environ.get('OPENAI_API_KEY'), model_name="text-embedding-ada-002")
 
-    from chroma_utils import get_chroma_client,add_item_to_chroma_db
+    from core.utils.chroma_utils import get_chroma_client,add_item_to_chroma_db
 
     chorma_client = get_chroma_client()
     chorma_client.delete_collection(name="word_documents")
@@ -168,7 +168,7 @@ def main():
 
     
     for idx,query in enumerate(queries):
-        from chroma_utils import query_vector_db
+        from core.utils.chroma_utils import query_vector_db
         print(f"Input query [{idx+1}]: {query}")
 
         output = query_vector_db(query= query , collection = chroma_collection )

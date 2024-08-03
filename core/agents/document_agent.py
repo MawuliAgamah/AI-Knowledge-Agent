@@ -59,4 +59,6 @@ class DocumentAgent:
     def llm_chain(self,prompt):
         llm = ChatOpenAI(model = self.model, api_key = self.config['api_key'])
         output = LLMChain(prompt=prompt, llm=llm)
+        logging.info(f"{output}")
+
         return output

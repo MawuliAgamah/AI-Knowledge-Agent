@@ -56,3 +56,85 @@ INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1
 INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
 INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
 INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:root:Document Agent Initialised
+INFO:root:Created document template
+INFO:root:Document Loaded
+INFO:root:Document Pre-Processed
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+INFO:root:Created DB Handler
+INFO:root:Document Agent Initialised
+INFO:root:Created document template
+INFO:root:Document Loaded
+INFO:root:Document Pre-Processed
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+INFO:root:Created DB Handler
+INFO:root:Document Agent Initialised
+INFO:root:Created document template
+INFO:root:Document Loaded
+INFO:root:Document Pre-Processed
+INFO:root:Document agent says : prompt=PromptTemplate(input_variables=['content'], template='Write a concise summary of the following content,:\n{content}\nSummary:\n') llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7f7c766084c0>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7f7c7660a5f0>, openai_api_key=SecretStr('**********'), openai_proxy='')
+INFO:root:Document agent says : prompt=PromptTemplate(input_variables=['doc_summaries'], template='The following is set of summaries:\n{doc_summaries}\nBY summarizing the above summaries determine what type of document this is. Start your answer with This document.\nSummary:') llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7f7c76690820>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7f7c76692950>, openai_api_key=SecretStr('**********'), openai_proxy='')
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+INFO:root:Created DB Handler
+INFO:root:Document Agent Initialised
+INFO:root:Created document template
+INFO:root:Document Loaded
+INFO:root:Document Pre-Processed
+INFO:root:prompt=PromptTemplate(input_variables=['content'], template='Write a concise summary of the following content,:\n{content}\nSummary:\n') llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7f932c4d8490>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7f932c4da5c0>, openai_api_key=SecretStr('**********'), openai_proxy='')
+INFO:root:prompt=PromptTemplate(input_variables=['content'], template='Write a concise summary of the following content,:\n{content}\nSummary:\n') llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7f932c4d8490>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7f932c4da5c0>, openai_api_key=SecretStr('**********'), openai_proxy='')
+INFO:root:prompt=PromptTemplate(input_variables=['doc_summaries'], template='The following is set of summaries:\n{doc_summaries}\nBY summarizing the above summaries determine what type of document this is. Start your answer with This document.\nSummary:') llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7f932c6607f0>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7f932c662920>, openai_api_key=SecretStr('**********'), openai_proxy='')
+INFO:root:prompt=PromptTemplate(input_variables=['doc_summaries'], template='The following is set of summaries:\n{doc_summaries}\nBY summarizing the above summaries determine what type of document this is. Start your answer with This document.\nSummary:') llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7f932c6607f0>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7f932c662920>, openai_api_key=SecretStr('**********'), openai_proxy='')
+INFO:root:llm_chain=LLMChain(prompt=PromptTemplate(input_variables=['content'], template='Write a concise summary of the following content,:\n{content}\nSummary:\n'), llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7f932c4d8490>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7f932c4da5c0>, openai_api_key=SecretStr('**********'), openai_proxy='')) reduce_documents_chain=ReduceDocumentsChain(combine_documents_chain=StuffDocumentsChain(llm_chain=LLMChain(prompt=PromptTemplate(input_variables=['doc_summaries'], template='The following is set of summaries:\n{doc_summaries}\nBY summarizing the above summaries determine what type of document this is. Start your answer with This document.\nSummary:'), llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7f932c6607f0>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7f932c662920>, openai_api_key=SecretStr('**********'), openai_proxy='')), document_variable_name='doc_summaries'), collapse_documents_chain=StuffDocumentsChain(llm_chain=LLMChain(prompt=PromptTemplate(input_variables=['doc_summaries'], template='The following is set of summaries:\n{doc_summaries}\nBY summarizing the above summaries determine what type of document this is. Start your answer with This document.\nSummary:'), llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7f932c6607f0>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7f932c662920>, openai_api_key=SecretStr('**********'), openai_proxy='')), document_variable_name='doc_summaries')) document_variable_name='content'
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+INFO:root:Created DB Handler
+INFO:root:Document Agent Initialised
+INFO:root:Created document template
+INFO:root:Document Loaded
+INFO:root:Document Pre-Processed
+INFO:root:prompt=PromptTemplate(input_variables=['content'], template='Write a concise summary of the following content,:\n{content}\nSummary:\n') llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7fce7b3f8430>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7fce7b3fa560>, openai_api_key=SecretStr('**********'), openai_proxy='')
+INFO:root:prompt=PromptTemplate(input_variables=['doc_summaries'], template='The following is set of summaries:\n{doc_summaries}\nBY summarizing the above summaries determine what type of document this is. Start your answer with This document.\nSummary:') llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7fce7b588790>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7fce7b58a8c0>, openai_api_key=SecretStr('**********'), openai_proxy='')
+INFO:root:Combine document chain : llm_chain=LLMChain(prompt=PromptTemplate(input_variables=['doc_summaries'], template='The following is set of summaries:\n{doc_summaries}\nBY summarizing the above summaries determine what type of document this is. Start your answer with This document.\nSummary:'), llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7fce7b588790>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7fce7b58a8c0>, openai_api_key=SecretStr('**********'), openai_proxy='')) document_variable_name='doc_summaries'
+INFO:root:Combine document chain : combine_documents_chain=StuffDocumentsChain(llm_chain=LLMChain(prompt=PromptTemplate(input_variables=['doc_summaries'], template='The following is set of summaries:\n{doc_summaries}\nBY summarizing the above summaries determine what type of document this is. Start your answer with This document.\nSummary:'), llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7fce7b588790>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7fce7b58a8c0>, openai_api_key=SecretStr('**********'), openai_proxy='')), document_variable_name='doc_summaries') collapse_documents_chain=StuffDocumentsChain(llm_chain=LLMChain(prompt=PromptTemplate(input_variables=['doc_summaries'], template='The following is set of summaries:\n{doc_summaries}\nBY summarizing the above summaries determine what type of document this is. Start your answer with This document.\nSummary:'), llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7fce7b588790>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7fce7b58a8c0>, openai_api_key=SecretStr('**********'), openai_proxy='')), document_variable_name='doc_summaries')
+INFO:root:llm_chain=LLMChain(prompt=PromptTemplate(input_variables=['content'], template='Write a concise summary of the following content,:\n{content}\nSummary:\n'), llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7fce7b3f8430>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7fce7b3fa560>, openai_api_key=SecretStr('**********'), openai_proxy='')) reduce_documents_chain=ReduceDocumentsChain(combine_documents_chain=StuffDocumentsChain(llm_chain=LLMChain(prompt=PromptTemplate(input_variables=['doc_summaries'], template='The following is set of summaries:\n{doc_summaries}\nBY summarizing the above summaries determine what type of document this is. Start your answer with This document.\nSummary:'), llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7fce7b588790>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7fce7b58a8c0>, openai_api_key=SecretStr('**********'), openai_proxy='')), document_variable_name='doc_summaries'), collapse_documents_chain=StuffDocumentsChain(llm_chain=LLMChain(prompt=PromptTemplate(input_variables=['doc_summaries'], template='The following is set of summaries:\n{doc_summaries}\nBY summarizing the above summaries determine what type of document this is. Start your answer with This document.\nSummary:'), llm=ChatOpenAI(client=<openai.resources.chat.completions.Completions object at 0x7fce7b588790>, async_client=<openai.resources.chat.completions.AsyncCompletions object at 0x7fce7b58a8c0>, openai_api_key=SecretStr('**********'), openai_proxy='')), document_variable_name='doc_summaries')) document_variable_name='content'
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+INFO:root:Created DB Handler
