@@ -1,4 +1,4 @@
-map_template = """Write a concise summary of the following content,:
+map_template = """The following is a part of a larger document. Write a concise summary of the following content,:
 {content}
 Summary:
 """

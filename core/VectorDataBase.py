@@ -41,10 +41,10 @@ class DataBaseHandler:
         if doc_type == ".docx":
             chunks = document_object.get_contents("chunks")
             for chunk in chunks:
-                for idx,item in enumerate(chunk):
+                for idx,item in chunk.items():
                     chroma_utils.add_items( collection = collection, 
-                                           item = item.page_content, 
-                                           metadata = {"source":item.metadata['source']} , 
+                                           item =item, 
+                                           metadata = {item['metadata']}, 
                                            id_num=  str(idx) 
                                            )
 
@@ -55,3 +55,7 @@ class DataBaseHandler:
     def show_contents(self):
         print(self.database.collections)
         print(self.client.list_collections())
+
+
+    def search(self,query:str):
+        pass

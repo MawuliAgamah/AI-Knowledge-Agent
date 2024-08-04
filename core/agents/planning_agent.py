@@ -89,5 +89,5 @@ class Agent():
         self.llm = llm
         self.key = os.environ.get('OPENAI_API_KEY')
 
-    def get_llm():
+    def get_llm(self):
         return self.llm()
