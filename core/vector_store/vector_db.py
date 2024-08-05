@@ -4,14 +4,19 @@ logging.basicConfig(filename='../logging/extract-log.txt', level=logging.INFO)
 logging.basicConfig(filename='../logging/extract-error-log.txt', level=logging.ERROR)
 
 import utils.chroma_utils as chroma_utils
+from llama_index import ChromaVectorStore 
+
+from llama_index.core import (
+    StorageContext,
+    VectorStoreIndex
+    )
 
 class DataBase:
     def __init__(self):
         self.client = None
-        self.collections = []
+        self.collections = {}
         self.documents = {}
         self.path_to_db = "/Users/mawuliagamah/gitprojects/STAR/db/chroma"
-
 
 
 
@@ -29,10 +34,10 @@ class DataBaseHandler:
         pass
 
     
-    def get_collection(self,collection):
+    def get_collection(self,collection_name):
         client = self.client
-        self.database.collections.append(collection)
-        collection = client.get_or_create_collection(name = collection)
+        collection = client.get_or_create_collection(name = collection_name)
+        self.database.collections['collection_name'] = collection
         return collection 
 
 
@@ -49,13 +54,49 @@ class DataBaseHandler:
                                            )
 
             logging.info(f"Document added to collection")
+            return self
         else:
             return print("non implemeted")
 
-    def show_contents(self):
+    def show_collection_contents(self):
         print(self.database.collections)
         print(self.client.list_collections())
 
 
-    def search(self,query:str):
-        pass
+    def create_or_load_vector_store_index(self,chroma_collecion):
+        # Check if index exists
+        vector_store = ChromaVectorStore(chroma_collection =  chroma_collecion)
+        storage_context = StorageContext.from_defaults(vector_store = vector_store)
+
+        index = VectorStoreIndex.from_vector_store(
+            vector_store, 
+            storage_context=storage_context
+            )
+        return index
+    
+
+    
+    def search(self,index,query):
+        """Query the database using llama index
+        
+        
+        
+        """
+        query_engine = index.as_query_engine()
+        response = query_engine.query(query)
+        return response
+
+
+
+class DataBasePipeline:
+    """Database pipeline creates a simple interface to interact with vector store and retreival
+    
+    """
+    def __init__(self,llm):
+        self.llm = llm
+
+
+
+
+    #def document(self,query):
+    #    return output

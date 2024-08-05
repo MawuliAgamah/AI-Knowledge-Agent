@@ -22,35 +22,44 @@
 
 ## To Do : 
 
+[Priority] [Status] [Descrption]
 
-- [] Implement llama index retrival with ChromaDB.
+ [1] [in_progress] Implement llama index retrival with ChromaDB. 
+        [] Improve retreival - Considering other retreival methods i.e. BM25, Reciprocal Rank
 
-- [] Add titles to the document object using the LLM. 
+- [2] Make a pipeline to handle all data base related code. 
+
+- [] Implement the database related code as a singleton pattern.;
+
+- [2] Improve how we handle collections, this should be a singleton
+     This is so that we only have one instance of a collection.
+
+- [4] Add titles to the document object using the LLM. 
       Entry point -> Document.py
          class DocumentHandler().
 
-- [] Fix meta data on documents, currently meta data is only for chunks.
+- [2] Fix meta data on documents, currently meta data is only for chunks.
       Entry point -> Document.py
          class DocumentHandler().
 
-- [] Improve the current implementation of the Agents.
+- [3] Improve the current implementation of the Agents.
       Entry Point -> Agent.py
 
         [] Improve the configuration handling of agents.
         [] Determine the design pattern for agents and how they should fit into the application.
         [] Give agents conversational memory.
 
-- [] Can we create a runtime for agents? what does this even mean.
+- [5] Can we create a runtime for agents? what does this even mean.
 
      So agents have an environment in which they exist and operate.
      This could be asyncronuse so they aren't just responding to 
      inputs from the user, but are constantly working and optimising outputs.
 
-- [] Testing
+- [4] Testing
     [] Write unit tests for document handler class.
 
 
-- [] Implement semantic chunking (Research dependent).
+- [5] Implement semantic chunking (Research dependent).
 
 
 
@@ -74,3 +83,6 @@ Document Retreival:
 - ** Markdown as structure ** 
     We want our documents to have structure. Should we get the LLM to 
     rewrite the document, keeping it as is , but adding structure VIA markdown?
+
+- How can we truly innovate here?
+    Can we peice together multiple outputs?

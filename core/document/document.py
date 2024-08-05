@@ -13,9 +13,6 @@ from config import config
 # Import Langchain 
 from langchain_community.document_loaders import Docx2txtLoader
 
-
-
-
 from gensim.parsing.preprocessing import remove_stopwords
 import nltk
 from nltk.stem import *

@@ -2,7 +2,7 @@
 from agents.document_agent import DocumentAgent 
 
 
-from Document import (
+from core.document.document import (
     DocumentPipeline , 
     DocumentBuilder
     )
@@ -10,7 +10,7 @@ from Document import (
 
 from config.config import llm_config
 
-from VectorDataBase import (
+from core.vector_store.vector_db import (
     DataBaseHandler, 
     DataBase as VectorDb
 )
@@ -24,19 +24,39 @@ if __name__ == '__main__':
     path = "/Users/mawuliagamah/gitprojects/STAR/data/documents/word/Job Adverts.docx"
     document_builder = DocumentBuilder()
 
-    document_agent = DocumentAgent(config=llm_config,llm = ChatOpenAI) # Instantiate the document agent with the configuration
+    """BLOCK 1"""
+    document_agent = DocumentAgent( # Instantiate the document agent with the configuration
+        config=llm_config,
+        llm = ChatOpenAI
+        ) 
     
-    pipeline = DocumentPipeline(document_builder = document_builder ,llm = document_agent) # Instanstiate a document pipeline with a docment builder and the
+    pipeline = DocumentPipeline( # Instanstiate a document pipeline with a docment builder and the
+        document_builder = document_builder ,
+        llm = document_agent
+        ) 
+    
     document_object = pipeline.build_document(path_to_document = path) # Create a document object for a single document 
-
+    
     print(document_object.contents)
     
+    """BLOCK 2"""
+    # Turn this into a database pipeline
+
     chorma_client = chroma_utils.get_client(path = '/Users/mawuliagamah/gitprojects/STAR/db/chroma/chroma.sqlite3')
-    database = DataBaseHandler(database = VectorDb(), client = chorma_client)
+    
+    # Create a vector database handler with the vector DB instanistated inside of this 
+    db_handler = DataBaseHandler(database = VectorDb(), client = chorma_client)
 
-    database.add_document(document_object,collection="word_document",doc_type = "docx")
-    database.show_contents()
+    collection_name ="word_document" 
 
+    db_handler = db_handler.add_document(document_object,collection_name=collection_name,doc_type = "docx")
+
+    collection = db_handler.get_collection(collection_name = collection_name)
+
+    index = db_handler.create_or_load_vector_store_index(chroma_collecion=collection)
+    response = db_handler.search(index = index, query = "Tell me about data science")
+
+    print(response)
 
 
     #database.query("query")
