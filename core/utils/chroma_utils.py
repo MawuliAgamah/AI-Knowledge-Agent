@@ -7,6 +7,9 @@ from dotenv import load_dotenv, find_dotenv
 from pathlib import Path
 
 
+from log import logger
+
+
 
 import chromadb
 from chromadb.config import DEFAULT_TENANT, DEFAULT_DATABASE, Settings
@@ -18,13 +21,19 @@ def get_client(path):
     """
     if os.path.exists(path):
         print("DB already exists") 
-        client = chromadb.PersistentClient(path=path)
+        client = chromadb.PersistentClient(
+            
+        path=path,
+        settings = Settings(allow_reset=True),
+        tenant=DEFAULT_TENANT,
+        database=DEFAULT_DATABASE,
+        )
 
     else:
         print("Making new client") 
         client = chromadb.PersistentClient(
         path=path,
-        settings=Settings(),
+        settings = Settings(allow_reset=True),
         tenant=DEFAULT_TENANT,
         database=DEFAULT_DATABASE,
         )
@@ -43,8 +52,8 @@ def add_item_to_chroma_db(collection,item,metadata,id_num):
     else:
         collection.add(
                     documents = item,
-                    metadatas = [metadata],
-                    ids = [id_num]
+                    metadatas = metadata,
+                    ids = id_num
                 )
 
 def add_items(collection,item,metadata,id_num):

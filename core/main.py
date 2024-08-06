@@ -1,8 +1,11 @@
+from log import logger
+import sys
+
 
 from agents.document_agent import DocumentAgent 
 
 
-from core.document.document import (
+from document.document import (
     DocumentPipeline , 
     DocumentBuilder
     )
@@ -10,7 +13,7 @@ from core.document.document import (
 
 from config.config import llm_config
 
-from core.vector_store.vector_db import (
+from vector_store.vector_db import (
     DataBaseHandler, 
     DataBase as VectorDb
 )
@@ -24,7 +27,8 @@ if __name__ == '__main__':
     path = "/Users/mawuliagamah/gitprojects/STAR/data/documents/word/Job Adverts.docx"
     document_builder = DocumentBuilder()
 
-    """BLOCK 1"""
+    """BLOCK 1 : Document """
+
     document_agent = DocumentAgent( # Instantiate the document agent with the configuration
         config=llm_config,
         llm = ChatOpenAI
@@ -37,26 +41,28 @@ if __name__ == '__main__':
     
     document_object = pipeline.build_document(path_to_document = path) # Create a document object for a single document 
     
-    print(document_object.contents)
-    
-    """BLOCK 2"""
-    # Turn this into a database pipeline
+
+    """BLOCK 2 : RAG """
 
     chorma_client = chroma_utils.get_client(path = '/Users/mawuliagamah/gitprojects/STAR/db/chroma/chroma.sqlite3')
-    
+    chorma_client.reset()
+
     # Create a vector database handler with the vector DB instanistated inside of this 
     db_handler = DataBaseHandler(database = VectorDb(), client = chorma_client)
 
     collection_name ="word_document" 
 
-    db_handler = db_handler.add_document(document_object,collection_name=collection_name,doc_type = "docx")
+    db_handler = db_handler.add_document(document_object,collection=collection_name,doc_type = "docx")
 
     collection = db_handler.get_collection(collection_name = collection_name)
 
     index = db_handler.create_or_load_vector_store_index(chroma_collecion=collection)
-    response = db_handler.search(index = index, query = "Tell me about data science")
+
+    response = db_handler.search(index = index, query = "What skills do i need to be a data scientist")
 
     print(response)
+
+    """Front End"""
 
 
     #database.query("query")

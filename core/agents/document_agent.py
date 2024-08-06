@@ -1,7 +1,7 @@
 import logging
+import sys
 
-logging.basicConfig(filename='../logging/extract-log.txt', level=logging.INFO)
-logging.basicConfig(filename='../logging/extract-error-log.txt', level=logging.ERROR)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
 def planner_agent(prompt_template,output_format):
@@ -55,6 +55,8 @@ meta_data_prompt = ChatPromptTemplate.from_messages([
         Format the document as so {format_instructions}"""),
     ("human","{chunk}")
 ])
+
+
 
 # Define your desired data structure.
 class MetaData(BaseModel):

@@ -4,9 +4,10 @@ import logging
 
 
 # Create and configure logger
-logging.basicConfig(filename='./extract-log.txt', level=logging.INFO)
-logging.basicConfig(filename='./extract-error-log.txt', level=logging.ERROR)
+import logging
+import sys
 
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 from pathlib import Path
 from dotenv import load_dotenv

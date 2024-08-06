@@ -1,10 +1,9 @@
 
 import os 
 import glob 
-import logging
+from log import logger  
 
-logging.basicConfig(filename='../logging/extract-log.txt', level=logging.INFO)
-logging.basicConfig(filename='../logging/extract-error-log.txt', level=logging.ERROR)
+import sys
 
 
 from agents.document_agent import DocumentAgent
@@ -102,7 +101,7 @@ class DocumentBuilder:
         initialises the document object setting the documents path attribute as the path.
         """
         document = Document(path = path)
-        logging.info("Created document template")
+        logger.info("Created document template")
         return document
 
     def load(self,document_object):
@@ -114,7 +113,7 @@ class DocumentBuilder:
         doc = loader.load()
         document_object.contents['document'] = doc
 
-        logging.info("Document Loaded")
+        logger.info("Document Loaded")
         return document_object
     
     def pre_process(self,document_object):
@@ -125,7 +124,7 @@ class DocumentBuilder:
         page_contents = ' '.join(lemmertizer.lemmatize(token) for token in nltk.word_tokenize(page_contents)) # Lemmertize 
         page_contents = remove_stopwords(page_contents) #  remove stop words 
         document_object = document_object.update(contents = "page_content", payload = page_contents) # Update the page contents of the documnet 
-        logging.info("Document Pre-Processed") # Log on completion 
+        logger.info("Document Pre-Processed") # Log on completion 
         return document_object  
     
     def chunk_document(self,document_object):
@@ -153,9 +152,11 @@ class DocumentBuilder:
         # document_title = document_object.get_contents("title")
 
         # Add the chunk a longside it's ID to the Chunks dictionairy 
-        logging.info(f"{len(chunks)} chunks to iterate through in this doucment")
+        logger.info(f"{len(chunks)} chunks to iterate through in this doucment")
 
-        for idx,chunk in tqdm(enumerate(chunks),desc="Chunking with metadata : ",total=len(chunks)):
+        # for idx,chunk in tqdm(enumerate(chunks),desc="Chunking with metadata : ",total=len(chunks)):
+        for idx,chunk in enumerate(chunks):
+            logger.info(f"Chunk : {idx}")
             metadata = llm.make_metadata(chunk)
             chunk_store = {
                 "chunk": chunk,
@@ -196,11 +197,11 @@ class DocumentBuilder:
         map_chain = llm.llm_chain(prompt = map_prompt)
         reduce_chain = llm.llm_chain(prompt = reduce_prompt)
         combine_documents_chain = StuffDocumentsChain(llm_chain= reduce_chain, document_variable_name="doc_summaries")
-        logging.info(f"Combine document chain : {combine_documents_chain}")
+        #logger.info(f"Combine document chain : {combine_documents_chain}")
         reduce_documents_chain = ReduceDocumentsChain(combine_documents_chain = combine_documents_chain, collapse_documents_chain = combine_documents_chain)
-        logging.info(f"Combine document chain : {reduce_documents_chain}")
+        #logger.info(f"Combine document chain : {reduce_documents_chain}")
         map_reduce_chain = MapReduceDocumentsChain(llm_chain=map_chain,document_variable_name="content",reduce_documents_chain=reduce_documents_chain)
-        logging.info(f"{map_reduce_chain}")
+        logger.info(f"{map_reduce_chain}")
         chunked_dcoument = document_object.get_contents("chunked_document") # We use the chunked document to feed into langchain
         document_summary = map_reduce_chain.run(chunked_dcoument) # Get contents of the chunked document to then send into the map reduce chain
         document_object = document_object.update("summary", payload = document_summary) # Update the document summary with the generated summary

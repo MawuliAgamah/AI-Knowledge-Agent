@@ -1,10 +1,15 @@
-import logging 
 
-logging.basicConfig(filename='../logging/extract-log.txt', level=logging.INFO)
-logging.basicConfig(filename='../logging/extract-error-log.txt', level=logging.ERROR)
+import sys
+
+from log import logger  
+
+
+
+
+
 
 import utils.chroma_utils as chroma_utils
-from llama_index import ChromaVectorStore 
+from llama_index.vector_stores.chroma import ChromaVectorStore
 
 from llama_index.core import (
     StorageContext,
@@ -19,6 +24,19 @@ class DataBase:
         self.path_to_db = "/Users/mawuliagamah/gitprojects/STAR/db/chroma"
 
 
+import os
+import dotenv 
+from dotenv import load_dotenv
+
+load_dotenv()
+API_KEY = os.getenv("OPENAI_API_KEY")
+
+import chromadb.utils.embedding_functions as embedding_functions
+openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+                api_key=API_KEY,
+                model_name="text-embedding-3-small"
+            )
+
 
 class DataBaseHandler:
     """
@@ -28,7 +46,7 @@ class DataBaseHandler:
         self.name = "database handler"
         self.database = database
         self.client = client
-        logging.info("Created DB Handler")
+        logger.info("Created DB Handler")
 
     def create_collection(self):
         pass
@@ -36,24 +54,41 @@ class DataBaseHandler:
     
     def get_collection(self,collection_name):
         client = self.client
-        collection = client.get_or_create_collection(name = collection_name)
+        collection = client.get_or_create_collection(name = collection_name,embedding_function = openai_ef )
         self.database.collections['collection_name'] = collection
         return collection 
 
 
     def add_document(self,document_object,collection,doc_type):
+        
         collection = self.get_collection(collection)
-        if doc_type == ".docx":
+        if doc_type == "docx":
             chunks = document_object.get_contents("chunks")
-            for chunk in chunks:
-                for idx,item in chunk.items():
-                    chroma_utils.add_items( collection = collection, 
-                                           item =item, 
-                                           metadata = {item['metadata']}, 
-                                           id_num=  str(idx) 
+
+
+        
+            for key,chunk in chunks.items():
+                
+                document_summary = chunk['metadata']['Document summary']
+                title = chunk['metadata']['Document title']
+                key_words = chunk['metadata']['keywords']
+                Tags = chunk['metadata']['Tags']
+                questons = chunk['metadata']['questions']
+
+                meta_data = {"summary":document_summary,
+                             "title":title,
+                             "tag":Tags[0] if Tags else '',
+                             "keyword":key_words[0] if key_words else '',
+                             "questions":questons[0] if questons else ''
+                             }
+
+                chroma_utils.add_items( collection = collection, 
+                                           item =chunk['chunk'].page_content, 
+                                           metadata = meta_data, 
+                                           id_num=  key
                                            )
 
-            logging.info(f"Document added to collection")
+            logger.info(f"Document added to collection")
             return self
         else:
             return print("non implemeted")
