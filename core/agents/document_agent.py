@@ -1,8 +1,7 @@
-import logging
 import sys
+sys.path.append("..") 
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-
+from log import logger
 
 def planner_agent(prompt_template,output_format):
     import json 
@@ -81,7 +80,7 @@ class DocumentAgent:
     def __init__(self,config,llm):
         self.config = config
         self.model = "gpt-3.5-turbo"
-        logging.info("Document Agent Initialised")
+        logger.info("Document Agent Initialised")
         self.llm = llm
 
 
@@ -93,7 +92,7 @@ class DocumentAgent:
     def llm_chain(self,prompt):
         llm = self.llm(model = self.model, api_key = self.config['api_key'])
         output = LLMChain(prompt=prompt, llm=llm)
-        logging.info(f"{output}")
+        logger.info(f"{output}")
         return output
     
     def make_metadata(self,chunk):
