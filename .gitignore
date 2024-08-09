@@ -4,3 +4,8 @@ db
 .DS_Store
 
 
+**/.DS_Store
+**/.env
+**/__pycache__/
+
+opensource/

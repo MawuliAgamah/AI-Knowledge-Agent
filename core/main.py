@@ -1,17 +1,13 @@
 from log import logger
 import sys
 
-
+from config.config import llm_config
 from agents.document_agent import DocumentAgent 
-
 
 from document.document import (
     DocumentPipeline , 
     DocumentBuilder
     )
-
-
-from config.config import llm_config
 
 from vector_store.vector_db import (
     DataBaseHandler, 
@@ -42,7 +38,7 @@ if __name__ == '__main__':
     document_object = pipeline.build_document(path_to_document = path) # Create a document object for a single document 
     
 
-    """BLOCK 2 : RAG """
+    """ BLOCK 2 : RAG """
 
     chorma_client = chroma_utils.get_client(path = '/Users/mawuliagamah/gitprojects/STAR/db/chroma/chroma.sqlite3')
     chorma_client.reset()
@@ -62,14 +58,21 @@ if __name__ == '__main__':
 
     print(response)
 
+
+    
+
+
+
     """Front End"""
 
 
-    #database.query("query")
 
-    #database.embed(document_object,embedding_model = embedding_model)
+
+    #   database.query("query")
+
+    #   database.embed(document_object,embedding_model = embedding_model)
     
-    #query_pipeline = QueryPipeline(query = Query, database = database, agents = agents)
+    #   query_pipeline = QueryPipeline(query = Query, database = database, agents = agents)
 
     # We now want to 
 
