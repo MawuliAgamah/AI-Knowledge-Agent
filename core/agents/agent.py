@@ -26,11 +26,9 @@ from prompts.prompt  import (
      Prompt_message
 )
 
-from typing import List 
 
 
 # Output structure for the language model agent 
-
 from output_formats import (
      Task,
      OutputFormat,
@@ -77,7 +75,7 @@ class TaskCreationAgent:
 
         pass 
 
-    def chat(self,prompt,output_format):
+    def chat(self,prompt_template,output_format):
         """Function for the agent to interact with its internal llm.
         
 
@@ -98,7 +96,7 @@ class TaskCreationAgent:
         output_parser = JsonOutputParser(pydantic_object=output_format)
         llm = self.llm(model = self.model, api_key = self.config['api_key'])
         thought_chain = Thought_prompt | llm | output_parser 
-        output = thought_chain.invoke({"prompt":prompt,"format_instructions":output_parser.get_format_instructions()})
+        output = thought_chain.invoke({"prompt":prompt_template,"format_instructions":output_parser.get_format_instructions()})
         return output
          
  
@@ -118,6 +116,7 @@ class TaskCreationAgent:
 
         while len(memory) < 1: 
             
+            self.chat(prompt_template = , output_format= )
             thought_chain = Thought_prompt | llm | thought_parser 
             thoughts = thought_chain.invoke({"prompt":user_prompt,"format_instructions":thought_parser.get_format_instructions()})
             memory.append(thoughts['thought'])
@@ -129,8 +128,9 @@ class TaskCreationAgent:
                   "Thought":thoughts['Thought']['thought'],
                   "Reaosoning":thoughts['Thought']['reasoning']}
             
-            # Iterate through the models thoughts 
+            # Iterate through the models thoughts and it's reasoning and let the model analyse how good the it's approach is
             for key,value in self.thoughts['task']:
+                  response = self.chat(prompt_template = , output_format= )
                  
                  
 

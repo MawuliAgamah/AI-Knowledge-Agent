@@ -7,7 +7,7 @@ from langchain_core.pydantic_v1 import (
 
 from typing import List
 
-
+#### Tasks 
 class Task(BaseModel):
     """
     Schema for an individual task.
@@ -24,6 +24,8 @@ class OutputFormat(BaseModel):
     tasks: List[Task] = Field(description="A list of tasks required to complete the action")
 
 
+# Thoughts 
+
 class Thought(BaseModel):
     """
     Schema for an individual task.
@@ -39,3 +41,13 @@ class Thoughts(BaseModel):
     """
     thought: List[Thought] = Field(description="A list of tasks required to complete the action")
 
+
+
+# Review 
+class Review(BaseModel):
+    """
+    Output schema for a model to review its own actions 
+    """
+
+    reflection : str = Field(description="A reflection on the models thought")
+    action : str = Field(description="an action to take given then reflection")
