@@ -21,44 +21,22 @@ from langchain_core.messages import (
 )
 
 
-from langchain_core.pydantic_v1 import ( 
-    BaseModel, 
-    Field
-    )
+from prompts.prompt  import (
+     Thought_prompt,
+     Prompt_message
+)
 
 from typing import List 
 
-class Task(BaseModel):
-    """
-    Schema for an individual task.
-    """
-    task_id: int = Field(description="Number to identify the task")
-    description: str = Field(description="Description of the task required to complete the action")
 
+# Output structure for the language model agent 
 
-class OutputFormat(BaseModel):
-    """
-    Output schema for the agent. 
-    The agent takes in a prompt and returns a list of tasks related to the problem.
-    """
-    tasks: List[Task] = Field(description="A list of tasks required to complete the action")
-
-
-Prompt_message = ChatPromptTemplate.from_messages([
-    ("system", """
-    You are a component of an AI system, specifically designed to generate task plans for other AI agents within the system. Your primary function is to allocate and assign tasks to these agents based on the user's input to effectively accomplish the user's request.
-    
-    You have access to the following tools:
-    - **Agent Calling**: Utilize this to delegate tasks or communicate with other AI agents.
-    - **Database Query**: Use this tool to retrieve or store information in a database.
-    - **Internet Search**: Leverage this tool to gather information from the web.
-
-    Think of yourself as the central planner, coordinating the efforts of multiple AI agents.
-
-    Your output should be a structured dictionary, where each key-value pair represents a specific task allocated to an AI agent, including which tool to use. The format of the output should adhere to the specified format instructions: {format_instructions}.
-    """),
-    ("human", "{prompt}")
-])
+from output_formats import (
+     Task,
+     OutputFormat,
+     Thought,
+     Thoughts
+)
 
 import json 
 class TaskCreationAgent:
@@ -67,7 +45,7 @@ class TaskCreationAgent:
         self.llm = llm
         self.model = "gpt-3.5-turbo"
         self.persona = None
-        self.thoughts = None
+        self.thoughts = {}
 
     def _react_task_planning(self):
          pass
@@ -99,23 +77,74 @@ class TaskCreationAgent:
 
         pass 
 
+    def chat(self,prompt,output_format):
+        """Function for the agent to interact with its internal llm.
+        
 
+        args
+        ----
+        prompt : 
+        output_format : Pyndanditc object which instructs the model as to how 
+        to ouput the 
+
+
+
+        returns:
+        Dictioniry
+
+
+        
+        """
+        output_parser = JsonOutputParser(pydantic_object=output_format)
+        llm = self.llm(model = self.model, api_key = self.config['api_key'])
+        thought_chain = Thought_prompt | llm | output_parser 
+        output = thought_chain.invoke({"prompt":prompt,"format_instructions":output_parser.get_format_instructions()})
+        return output
+         
  
     def main(self,user_prompt):
         
         # LLM Agent to take in the prompt and determine a lists of tasks which are then run in the main loop
-        parser = JsonOutputParser(pydantic_object=OutputFormat)
+        #parser = JsonOutputParser(pydantic_object=OutputFormat)
         llm = self.llm(model = self.model, api_key = self.config['api_key'])
-        chain = Prompt_message | llm | parser 
-        
-        to_do = chain.invoke({"prompt":user_prompt,"format_instructions":parser.get_format_instructions()})
-        tasks = to_do['tasks']
+        #chain = Prompt_message | llm | parser 
+        #to_do = chain.invoke({"prompt":user_prompt,"format_instructions":parser.get_format_instructions()})
+        #tasks = to_do['tasks']
         #to_do = json.loads(to_do)
         # Main loop to through through the agents tasks
-        #while tasks: 
-                # Run through the loop
-        for task in tasks:
-            print(task)
+        memory = []
+
+        thought_parser = JsonOutputParser(pydantic_object=Thoughts)
+
+        while len(memory) < 1: 
+            
+            thought_chain = Thought_prompt | llm | thought_parser 
+            thoughts = thought_chain.invoke({"prompt":user_prompt,"format_instructions":thought_parser.get_format_instructions()})
+            memory.append(thoughts['thought'])
+            
+            # Add this to the thought and then the language model will next review, make any corrections 
+            # before then going to the next ate 
+            self.thoughts['task'] = {
+                 "id":thoughts['thought']['id'],
+                  "Thought":thoughts['Thought']['thought'],
+                  "Reaosoning":thoughts['Thought']['reasoning']}
+            
+            # Iterate through the models thoughts 
+            for key,value in self.thoughts['task']:
+                 
+                 
+
+            
+        # We could then add all of the thoughts to the database as a memory? Then the model can use this as a sort of 
+        # of long term meory?
+
+        
+
+
+            ##for i in thoughts:
+              #   print(i)
+              #   memory.append(i)
+
 
 
 
