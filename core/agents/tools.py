@@ -8,10 +8,8 @@ def call_agent():
 
 
 
-
-@tool
 def query_data_base(query):
 
 
 
-    return response 
+    return response  

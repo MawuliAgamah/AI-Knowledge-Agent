@@ -42,26 +42,17 @@ from output_formats import (
 import json 
 class TaskCreationAgent:
      def __init__(self,config,llm):
+        # agent config
         self.config = config 
+
+        # model set up 
         self.llm = llm
         self.model = "gpt-3.5-turbo"
+
+        # non-config vars 
         self.persona = None
         self.thoughts = {}
 
-     def _react_task_planning(self):
-         pass
-    
-     def _sequential_task_planning(self):
-         pass 
-
-     def memory(self):
-         pass 
-    
-     def _set_persona(self):
-         """ Set the role and personality of the agents. 
-         Set the tools the agent has accesss to.
-         
-         """
 
      def use_tool(self):
         """
@@ -75,13 +66,11 @@ class TaskCreationAgent:
             "database_query" : None,
             "internet_search":None
             }
-
-        pass 
+ 
 
      def chat(self,output_format,prompt_template = None,thoughts = None):
         """Function for the agent to interact with its internal llm.
         
-
         args
         ----
         prompt : 
@@ -105,7 +94,6 @@ class TaskCreationAgent:
           output = thought_chain.invoke({"prompt":thoughts,"format_instructions":output_parser.get_format_instructions()})
           return output
             
-    
     
      def interpret_task(self,task,output_format):
           print(f"\033[95m\033[1m"+"\n***** Interpretation *****\n"+"\033[0m\033[0m")
@@ -135,10 +123,9 @@ class TaskCreationAgent:
 
           print(f"\033[95m\033[1m"+"\n***** TASK LIST *****\n"+"\033[0m\033[0m")
           print(str(task_list[0]))
-
           # main loop 
           while True: 
-               if  task_list: # Check the task_list is not empty
+               if task_list: # Check the task_list is not empty
                     for task in task_list: # iterate thought each task in the task list 
                          Thoughts = self.interpret_task(task  = task,output_format=interpretationFormat)
                          print(Thoughts)
@@ -186,11 +173,11 @@ class TaskCreationAgent:
 
 
 from config.config import config
-from prompts.prompt import BroadUserPrompt
+from prompts.prompt import init_prompt
 
 
 if __name__=='__main__':
         
         agent = TaskCreationAgent(config = config, llm = ChatOpenAI)
         
-        agent.main(user_prompt= BroadUserPrompt)
+        agent.main(user_prompt= init_prompt)

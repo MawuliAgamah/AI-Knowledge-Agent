@@ -15,14 +15,12 @@ class Task(BaseModel):
     id: int = Field(description=" A unique number to identify the task")
     description: str = Field(description="Description of the sub-task required to complete the users objective.")
 
-
-
 class TaskOutputFormat(BaseModel):
     """
     Output schema for the agent. 
     The agent takes in a prompt and returns a list of tasks related to the problem.
     """
-    tasks: List[Task] = Field(description="A comprehensive list of sub-tasks which are to be completed to acheive the users objective")
+    tasks: List[Task] = Field(description="A list of indiviual tasks")
 
 
 # Thoughts 
@@ -40,7 +38,7 @@ class Thoughts(BaseModel):
     Output schema for the agent. 
     The agent takes in a prompt and returns a list of tasks related to the problem.
     """
-    thought: List[Thought] = Field(description="A list of tasks required to complete the action")
+    thought: List[Thought] = Field(description="An array of thoughts detailing your reasoning, solution preparation, and next steps.")
 
 
 # Interpret task 
