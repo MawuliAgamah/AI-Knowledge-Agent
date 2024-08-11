@@ -13,15 +13,16 @@ class Task(BaseModel):
     Schema for an individual task.
     """
     id: int = Field(description=" A unique number to identify the task")
-    description: str = Field(description="Description of the task required to complete the action")
+    description: str = Field(description="Description of the sub-task required to complete the users objective.")
 
 
-class OutputFormat(BaseModel):
+
+class TaskOutputFormat(BaseModel):
     """
     Output schema for the agent. 
     The agent takes in a prompt and returns a list of tasks related to the problem.
     """
-    tasks: List[Task] = Field(description="A list of tasks required to complete the action")
+    tasks: List[Task] = Field(description="A comprehensive list of sub-tasks which are to be completed to acheive the users objective")
 
 
 # Thoughts 
@@ -42,12 +43,18 @@ class Thoughts(BaseModel):
     thought: List[Thought] = Field(description="A list of tasks required to complete the action")
 
 
-
-# Review 
-class Review(BaseModel):
+# Interpret task 
+class Interpretation(BaseModel):
     """
     Output schema for a model to review its own actions 
     """
+    id : str = Field(description="unique intiger for analysis and reasoning block")
+    analysis : str = Field(description="Your detailed review and analysis of the task given to you.")
+    reasoning : str = Field(description="")
 
-    reflection : str = Field(description="A reflection on the models thought")
-    action : str = Field(description="an action to take given then reflection")
+
+class interpretationFormat(BaseModel):
+    """
+    Output schema for a model to review its own actions 
+    """
+    thought : List[Interpretation] = Field(description="A list of at maxiumum 5 interprations")
