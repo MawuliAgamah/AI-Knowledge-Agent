@@ -24,8 +24,11 @@ from langchain_core.messages import (
 from prompts.prompt  import (
      Thought_prompt,
      Prompt_message,
-     task_creating_prompt
+     task_creating_prompt,
+     task_execution_prompt,
 )
+
+from concurrent.futures import ThreadPoolExecutor
 
 
 
@@ -40,6 +43,7 @@ from output_formats import (
 )
 
 import json 
+import tools 
 class TaskCreationAgent:
      def __init__(self,config,llm):
         # agent config
@@ -52,20 +56,21 @@ class TaskCreationAgent:
         # non-config vars 
         self.persona = None
         self.thoughts = {}
-
-
-     def use_tool(self):
-        """
-        Agent has access to a set of tools it can use.
-        This dictionairy contains all the tools, and the agent decides which to use
-        To complete it's task.
-        """
-        
-        tools = {
-            "agent_calling" : None,
-            "database_query" : None,
-            "internet_search":None
+        self.tools = {
+            "data_base_query_tool":tools.query_data_base,
+            "write_to_system_tool":tools.write_to_file
             }
+
+     def use_tool(self,tool_selected,tool_arguments):
+          """
+          Agent has access to a set of tools it can use.
+          This dictionairy contains all the tools, and the agent decides which to use
+          To complete it's task.
+          """
+          if tool_selected in self.tools:
+               self.tools[tool_selected](tool_arguments)
+          else:
+            raise ValueError(f"Tool '{tool_selected}' is not available.")
  
 
      def chat(self,output_format,prompt_template = None,thoughts = None):
@@ -113,6 +118,17 @@ class TaskCreationAgent:
          tasks = self.chat(prompt_template = prompt,thoughts=thought_string,output_format = output_format)
          return tasks
 
+     def execute_task(self,task,prompt,output_format):
+         """After creating a set of tasks, the agent can then use tools to execute other tasks.
+          For document writing i need the agent to be work properly and properly use tool.
+         """
+         # Plan for completing the taskl 
+         
+         # Use tool 
+         
+
+
+         return 
 
          
          
@@ -129,15 +145,25 @@ class TaskCreationAgent:
                     for task in task_list: # iterate thought each task in the task list 
                          Thoughts = self.interpret_task(task  = task,output_format=interpretationFormat)
                          print(Thoughts)
-                         tasks = self.create_tasks(prompt = task, thought_string = Thoughts ,output_format=TaskOutputFormat)
-                         print(tasks)
-                         task_list = task_list.remove(task)
-                         result = self.execute_tasks(task)
+                         agent_task_list = self.create_tasks(prompt = task, thought_string = Thoughts ,output_format=TaskOutputFormat)
+                         #task_list = task_list.remove(task)
+                         
+                         #with ThreadPoolExecutor() as executor: # Agent is going to execute the tasks in parallel 
+                         for agent_task in agent_task_list['tasks']:
+                             print("\033[94m\033[1m" + f"TASK {agent_task['id']} : " + f"{agent_task['description']}" + "\033[0m")
+                             #self.execute_task(task = agent_task['description'],prompt=)
+                             #      print('Task : ',value)
+                                   #future = executor.submit(self.execute_tasks(task), task, task_list, OBJECTIVE)
+   
                          #result = self.execute_task(interpret_json)
+                         print(f"\033[95m\033[1m"+"\n***** TASK COMPLETED, REMOVING TASKS *****\n"+"\033[0m\033[0m")
+                         task_list = task_list.remove(task)
                else:
                     print(f"\033[95m\033[1m"+"\n***** NO TASKS LEFT *****\n"+"\033[0m\033[0m")
                     print("no tasks")
                     break 
+
+               
                     #self.chat(prompt_template = , output_format= )
                     #thought_chain = Thought_prompt | llm | thought_parser 
                     #thoughts = thought_chain.invoke({"prompt":user_prompt,"format_instructions":thought_parser.get_format_instructions()})
