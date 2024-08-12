@@ -1,7 +1,9 @@
-from log import logger
 import sys
+sys.path.append("..") 
 
-from config.config import llm_config
+from log import logger
+
+from config.config import config
 from agents.document_agent import DocumentAgent 
 
 from document.document import (
@@ -11,8 +13,12 @@ from document.document import (
 
 from vector_store.vector_db import (
     DataBaseHandler, 
-    DataBase as VectorDb
+    DataBase as VectorDb,
+    DataBasePipeline
 )
+
+
+#from agents.agent import(TaskCreationAgent)
 
 import utils.chroma_utils as chroma_utils  
 
@@ -26,7 +32,7 @@ if __name__ == '__main__':
     """BLOCK 1 : Document """
 
     document_agent = DocumentAgent( # Instantiate the document agent with the configuration
-        config=llm_config,
+        config=config,
         llm = ChatOpenAI
         ) 
     
@@ -40,23 +46,27 @@ if __name__ == '__main__':
 
     """ BLOCK 2 : RAG """
 
-    chorma_client = chroma_utils.get_client(path = '/Users/mawuliagamah/gitprojects/STAR/db/chroma/chroma.sqlite3')
-    chorma_client.reset()
+    # Instantiate a database pipeline
+    database_pipeline = DataBasePipeline(reset_client=True)
+    database_pipeline = database_pipeline.add_document(document_object,collecton_name = "word_documents",doc_type = "docx")
+    resonse = database_pipeline.query_data_base(query = "What skills do i need for a data role?",collection_name = "word_documents")
 
+    #chorma_client = chroma_utils.get_client(path = '/Users/mawuliagamah/gitprojects/STAR/db/chroma/chroma.sqlite3')
+    #chorma_client.reset()
     # Create a vector database handler with the vector DB instanistated inside of this 
-    db_handler = DataBaseHandler(database = VectorDb(), client = chorma_client)
+    #db_handler = DataBaseHandler(database = VectorDb(), client = chorma_client)
 
-    collection_name ="word_document" 
 
-    db_handler = db_handler.add_document(document_object,collection=collection_name,doc_type = "docx")
+    #collection_name ="word_document" 
+    #db_handler = db_handler.add_document(document_object,collection=collection_name,doc_type = "docx")
 
-    collection = db_handler.get_collection(collection_name = collection_name)
+    #collection = db_handler.get_collection(collection_name = collection_name)
 
-    index = db_handler.create_or_load_vector_store_index(chroma_collecion=collection)
+    #index = db_handler.create_or_load_vector_store_index(chroma_collecion=collection)
 
-    response = db_handler.search(index = index, query = "What skills do i need to be a data scientist")
+    #response = db_handler.search(index = index, query = "What skills do i need to be a data scientist")
 
-    print(response)
+    print(resonse)
 
 
     

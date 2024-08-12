@@ -1,48 +1,236 @@
-BroadUserPrompt = """
-Career Goal: Become a lead data scientist within one year in the UK civil service
+# This file houses all of the prompts 
 
-The data i have made available to you is as follows :
-- My Current CV
-- Job descriptions for positions i would like to apply to.
+init_prompt = """
+I am applying for a new job and need your assistance in crafting a strong, updated CV. I have an old CV and the job description saved in my file system, which you have access to.
 
-Request: Develop a comprehensive one-year career advancement plan that addresses the following areas:
+Your task is to leverage these resources, along with your access to vast information, including the internet and relevant files in the database, to help me write a compelling new CV.
 
-1. Skills and Qualifications:
-   - Identify specific technical and soft skills required for a lead data scientist role
-   - Determine any gaps between current skillset and desired qualifications
-
-2. Learning and Development:
-   - Recommend relevant courses, certifications, and training programs
-   - Prioritize learning objectives based on impact and time investment
-
-3. Career Progression Timeline:
-   - Outline key milestones and set realistic deadlines
-   - Suggest methods for tracking and evaluating progress
-
-4. Performance Enhancement:
-   - Provide strategies for improving current job performance
-   - Recommend ways to gain relevant leadership and project management experience
-
-5. Application Optimization:
-   - Offer tips for tailoring CV and job applications to Grade 7 data scientist positions
-   - Suggest effective ways to highlight newly acquired skills and experiences
-
-6. Additional Recommendations:
-   - Propose networking strategies and industry engagement opportunities
-   - Advise on building a professional online presence (e.g., LinkedIn, GitHub)
-   - Suggest relevant conferences, workshops, or seminars to attend
-
-Please provide detailed, actionable advice for each area, considering the provided resources and the one-year timeframe. Include specific examples and practical steps where possible.
+Please carefully consider each section of the CV, from personal details and experience to skills and achievements, and provide guidance on how to best present and review each part to create a standout CV tailored to the job description.
 """
 
+from langchain_core.prompts import ChatPromptTemplate
 
-#task_planner_promp = f'Take the following prompt : {query2}.  Break this down prompt down into a tasks
-#                              Which can then be fed into a langiage model prompts which can then be actioned'
+interpret_prompt = ChatPromptTemplate.from_messages([
+    ("system", """
+    <Task>
+        <Role>
+            <Description>
+                You are an autonomous JSON AI Task-solving agent equipped with advanced knowledge and execution tools.
+                You receive tasks from your superior and solve them by utilizing your tools and coordinating with subordinate agents.
+                When given a prompt, your objective is to thoroughly review, examine, and analyze the task to understand what is required.
+            </Description>
+        </Role>
+
+        <AnalysisGuidelines>
+            <ObjectiveClarity>
+                What is the main goal? Is it clearly defined?
+            </ObjectiveClarity>
+            <Complexity>
+                How complex is the task? What challenges might arise?
+            </Complexity>
+            <Instructions>
+                Are the instructions complete and unambiguous? Is anything missing?
+            </Instructions>
+            <RequiredActions>
+                What are the specific actions needed to accomplish the task?
+            </RequiredActions>
+            <PotentialIssues>
+                Are there any ambiguities or unclear points? How can they be resolved?
+            </PotentialIssues>
+            <Context>
+                What is the context of this prompt? What is the user's intent or expected outcome?
+            </Context>
+        </AnalysisGuidelines>
+
+        <Communication>
+            Your response must be a JSON object containing the following fields:
+            <ResponseFields>
+                <Analysis>
+                    The first key-value pair represents an analysis of the task given the requirements just stated.
+                </Analysis>
+                <Reasoning>
+                    The next key-value pair represents your reasoning for that analysis.
+                </Reasoning>
+            </ResponseFields>
+            The format of your thoughts should adhere to the specified format instructions: {format_instructions}.
+        </Communication>
+    </Task>
+    """),
+    ("human", "<UserPrompt>This is the main objective given to you by the human: {prompt}</UserPrompt>")
+])
+
+
+
+Prompt_message = ChatPromptTemplate.from_messages([
+    ("system", """
+    You are a component of an AI system. 
+    specifically designed to generate task plans for other AI agents within the system. 
+    Your primary function is to allocate and assign tasks to these agents based on the user's input to effectively accomplish the user's request.
+    
+    You have access to the following tools:
+    - **Agent Calling**: Utilize this to delegate tasks or communicate with other AI agents.
+    - **Database Query**: Use this tool to retrieve or store information in a database.
+    - **Internet Search**: Leverage this tool to gather information from the web.
+
+    The following are your previous thouughts on the users problem {prompt}
+
+    Your output should be a structured dictionary, where each key-value pair represents a specific task allocated to an AI agent, including which tool to use. 
+     The format of the output should adhere to the specified format instructions: 
+     {format_instructions}.
+
+     
+         """),
+    ("human", "{prompt}")
+])
+
+
+
+Thought_prompt = ChatPromptTemplate.from_messages([
+    ("system", """
+     
+     You are a component of a piece of sotware.
+     The software is allows an human to query all of the document in their file system and use a language model which is able to
+     use this to helpo them write documents.
+
+     The software uses multiple AI agents to work together and complete a task a humans inputs.
+     For example, it can help you write a document. 
+     
+     You are the central planner, your role is to determine the strategy by which a users tasks can be completed.
+
+    You have access to the following tools:
+    - **Agent Calling**: Utilize this to delegate tasks or communicate with other AI agents.
+    - **Database Query**: Use this tool to retrieve or store information in a database.
+    - **Internet Search**: Leverage this tool to gather information from the web.
+    
+    Explain your reasoning for doing so, meaning, why did you decide this was optimal.
+
+    Your output should be a structured dictionary, 
+     where each key-value pair represents a specific thought of yours based around how to complete the task, 
+     The format of the your thoughts should adhere to the specified format instructions: {format_instructions}.
+    """),
+    ("human", "{prompt}")
+])
+
+
+reasoning_review = ChatPromptTemplate.from_messages([
+    ("system", """
+     
+     You are a component of a piece of sotware.
+     The software is allows an human to query all of the document in their file system and use a language model which is able to
+     use this to helpo them write documents.
+
+     The software uses multiple AI agents to work together and complete a task a humans inputs.
+     For example, it can help you write a document. 
+     
+     You are the central planner, your role is to determine the strategy by which a users tasks can be completed.
+
+    You have access to the following tools:
+    - **Agent Calling**: Utilize this to delegate tasks or communicate with other AI agents.
+    - **Database Query**: Use this tool to retrieve or store information in a database.
+    - **Internet Search**: Leverage this tool to gather information from the web.
+    
+    Explain your reasoning for doing so, meaning, why did you decide this was optimal.
+
+    Your output should be a structured dictionary, 
+     where each key-value pair represents a specific thought of yours based around how to complete the task, 
+     The format of the your thoughts should adhere to the specified format instructions: {format_instructions}.
+    """),
+    ("human", "{prompt}")
+])
+
+task_creating_prompt = ChatPromptTemplate.from_messages([
+    ("system", """
+  ## ROLE
+You are an expert task creation AI.
+
+## PREVIOUS THOUGHTS
+The following are your previous thoughts on the current problem: **{prompt}**
+
+## CORE RESPONSIBILITIES
+Your core responsibilities include:
+
+- **Strategy Development**: Develop a comprehensive strategy to accomplish the user's task.
+- **Task Breakdown**: Break down the main task into clear, actionable subtasks that can be assigned to specific AI agents or tools.
+
+## TOOLS AVAILABLE
+You have access to the following tools:
+
+- **Agent Calling**: Delegate tasks to other AI agents, ensuring optimal use of their specialized capabilities.
+- **Database Query**: Retrieve or store information relevant to the task.
+- **Internet Search**: Acquire additional information from the web that may be crucial for completing the task.
+
+## EXPECTED OUTPUT
+You must ensure the output adheres to the following:
+
+- **Output Format**: Produce a structured dictionary where each key-value pair represents a distinct thought or subtask related to achieving the user's goal.
+- **Adherence**: Ensure that the output strictly follows the provided format instructions: **{format_instructions}**.
+    """),
+    ("human", """Based on your thoughts, create a list of sub-tasks to fulfill the users requesrt""")
+])
+
+
+
+task_execution_prompt = ChatPromptTemplate.from_messages([
+    ("system", 
+     """
+      ROLE
+         You are an AI agent who is specialised in completing tasks with access to tools.
+         
+     OBJECTIVE
+     
+         
+         You must first create a plan for how you will accomplish the task.
+         If you need to use a tool to complete a task you will specify which tool you need and why.
+
+      CONTEXT
+         
+      TOOLS 
+         The tools that you currently have access to are
+         data_base_query_tool : 
+         This tool allows you to write query to a database access information curently stored in the databse
+
+      FULLFILLMENT INSTRUCTIONS
+     
+
+
+     OUTPUT FORMAT
+      You must always Ensure that the output strictly adheres to the provided format instructions: {format_instructions}.
+      In the tool you describe which tool it is you will you, form the set of tools you have access to.
+      in the reason json you describe why this tool will best fulfill the task.
+     
+     EXAMPLES
+     
+    """),
+    ("human", """
+    <UserInstruction>
+        Break down the problem into smaller subtasks to enable you to complete the user's objective.
+    </UserInstruction>
+    """)
+])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Planner_prompt = f"""
         Analyze the following career development prompt:
 
-        {BroadUserPrompt}
+        {init_prompt}
 
         Please provide a structured breakdown of this prompt into smaller sub-tasks.
 
@@ -54,6 +242,18 @@ Planner_prompt = f"""
 
         Ensure each sub-prompt is clear, specific, and actionable.
 """
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 example_json = {

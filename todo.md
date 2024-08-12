@@ -42,7 +42,9 @@
     We do not want to Rechunk and Re-idnex documents if they are already uploaded.
 
 
-- [2] Make a pipeline to handle all data base related code. 
+- [completed] Make a pipeline to handle all data base related code. 
+- [completed] **Working on the database pipeline so it can be accessed by all parts of the application ***
+
 
 - [ in progress ] Implement the database related code as a singleton pattern.
 
@@ -84,11 +86,19 @@
                 working on the main function. I am working on defining an entry 
                 point for the agent.So defining a set of tasks and thus an etry point for the language model
 
+            Currently working on reasoning:
+                1) Creating a chat method in the agent to make it really easy to 
+                send in a prompt and get an outpit
+                
+
 
             What is the agent architecuture I should use here?
 
             I am currently using the babyAGI codebase to build my agent class 
  
+- [] **Clean up prompts and code, so it is easy to follow and organise, prompt templates are a bit of a mess right now.
+How do we get our prompts from markdown into langchains prompt template?
+
 
 # Bugs to Fix :
     [] - When logging, what is the really slow start up time?
@@ -105,3 +115,9 @@
         Can we peice together multiple outputs?
 
 - Take the Language models outputs and then feed this into a vector database and the language model can implement this into its planning 
+
+
+# Useful commands 
+
+Remove all ofthe pycache files 
+`find . | grep -E "(__pycache__|\.pyc$)" | xargs rm -rf`

@@ -6,8 +6,6 @@ from log import logger
 
 
 
-
-
 import utils.chroma_utils as chroma_utils
 from llama_index.vector_stores.chroma import ChromaVectorStore
 
@@ -109,14 +107,9 @@ class DataBaseHandler:
             )
         return index
     
-
     
     def search(self,index,query):
-        """Query the database using llama index
-        
-        
-        
-        """
+        """Query the database using llama index"""
         query_engine = index.as_query_engine()
         response = query_engine.query(query)
         return response
@@ -124,11 +117,35 @@ class DataBaseHandler:
 
 
 class DataBasePipeline:
-    """Database pipeline creates a simple interface to interact with vector store and retreival
+    """Database pipeline creates a simple interface to interact with vector store and retreival"""
+    def __init__(self,reset_client=True):
+        database = DataBase()
+        client = chroma_utils.get_client(path = '/Users/mawuliagamah/gitprojects/STAR/db/chroma/chroma.sqlite3')
+        self.db_handler = DataBaseHandler(database = database,client=client)
+        if reset_client == True:
+            client.reset() # This empties the client, use in development so we can start with new data
+            self.client = client
+        else:
+            self.client = client
+
+
+    def add_document(self,document_object,collecton_name,doc_type):
+        self.db_handler = self.db_handler.add_document(document_object,collection=collecton_name,doc_type = doc_type)
+        return self 
+
+    def query_data_base(self,query,collection_name = None):
+        chorma_client = self.client
+        collection = self.db_handler.get_collection(collection_name = collection_name)
+        index = self.db_handler.create_or_load_vector_store_index(chroma_collecion=collection)
+        response = self.db_handler.search(index = index, query = query)
+        return response
+        
+        
+
+
+        
+
     
-    """
-    def __init__(self,llm):
-        self.llm = llm
 
 
 
