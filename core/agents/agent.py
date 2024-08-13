@@ -20,13 +20,20 @@ from langchain_core.messages import (
         ToolMessage
 )
 
-
+# Import all prompts used throughout application
 from prompts.prompt  import (
      Thought_prompt,
      Prompt_message,
      task_creating_prompt,
      task_execution_prompt,
 )
+
+
+
+from prompts.agent.input_interpretation import interpretation_prompt
+#from prompts.agent.task_generation import task_generation_prompt
+#from prompts.agent.task_execution import task_execution_prompt
+
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -39,7 +46,8 @@ from output_formats import (
      Thought,
      Thoughts,
      Interpretation,
-     interpretationFormat
+     interpretationFormat,
+     ExecuteTaskFormat
 )
 
 import json 
@@ -48,7 +56,6 @@ class TaskCreationAgent:
      def __init__(self,config,llm):
         # agent config
         self.config = config 
-
         # model set up 
         self.llm = llm
         self.model = "gpt-3.5-turbo"
@@ -78,7 +85,7 @@ class TaskCreationAgent:
         
         args
         ----
-        prompt : 
+        prompt : A prompt template
         output_format : Pyndanditc object which instructs the model as to how 
         to ouput the 
 
@@ -100,35 +107,69 @@ class TaskCreationAgent:
           return output
             
     
-     def interpret_task(self,task,output_format):
+     def interpret_task(self,task):
+          """
+          Function which simulates the agent interpreting the task.
+          This aims to simulate the agent thinking and reasoning about the task at hand.
+          Before then breaking it down into sub tasks.
+
+          args
+          ----
+          task : langchain prompt template of the users task
+
+          returns :
+          dictionairy
+
+          """
           print(f"\033[95m\033[1m"+"\n***** Interpretation *****\n"+"\033[0m\033[0m")
-          task_interpretation = self.chat(prompt_template=task,output_format = output_format)
-        
+                    
+          output_parser = JsonOutputParser(pydantic_object=interpretationFormat) # Create a pydantic output parser
+          llm = self.llm(model = self.model, api_key = self.config['api_key'])
+          # Create a chain which takes in the prompt, the model and output parser
+          thought_chain = interpretation_prompt | llm | output_parser 
+          task_interpretation = thought_chain.invoke({"prompt":task,"format_instructions":output_parser.get_format_instructions()})
+          
           thoughts = list()
           for key,value in task_interpretation.items():
                for i in value:
-                    thought_string = f" Thought {i['id']} : {i['analysis']} and the reasoning behind this is : {i['reasoning']}"
+                    thought_string = f"Agents thought {i['id']} : {i['analysis']} and further_questions {i['questions']}"
                     thoughts.append(thought_string)
           
           thought_string = "\n".join(thoughts)
           return thought_string
     
-     def create_tasks(self,prompt,thought_string,output_format):
-         print(f"\033[95m\033[1m"+"\n***** Creating_tasks *****\n"+"\033[0m\033[0m")
-         tasks = self.chat(prompt_template = prompt,thoughts=thought_string,output_format = output_format)
-         return tasks
+     def create_tasks(self,prompt,thought_string):
+          print(f"\033[95m\033[1m"+"\n***** Creating_tasks *****\n"+"\033[0m\033[0m")
+          
+          from prompts.user_prompt import task as OBJECTIVE
 
-     def execute_task(self,task,prompt,output_format):
-         """After creating a set of tasks, the agent can then use tools to execute other tasks.
-          For document writing i need the agent to be work properly and properly use tool.
+          output_parser = JsonOutputParser(pydantic_object=TaskOutputFormat) # Create a pydantic output parser
+          llm = self.llm(model = self.model, api_key = self.config['api_key'])
+          task_chain = task_execution_prompt | llm | output_parser 
+          tasks = task_chain.invoke({"prompt":prompt,"thoughts":thought_string,"format_instructions":output_parser.get_format_instructions()})
+          
+          return tasks
+
+     def execute_task(self,task):
          """
-         # Plan for completing the taskl 
+         After creating a set of tasks, the agent can then use tools to execute other tasks.
+         For document writing i need the agent to be work properly and properly use tool.
+         """
+         print(task)
+         from prompts.agent.input_interpretation import interpretation_prompt
+         from prompts.user_prompt import task as OBJECTIVE
          
+         output_parser = JsonOutputParser(pydantic_object=ExecuteTaskFormat) # Create a pydantic output parser
+         llm = self.llm(model = self.model, api_key = self.config['api_key'])
+         # Create a chain which takes in the prompt, the model and output parser
+         tool_chain = task_execution_prompt | llm | output_parser 
+         tool_use = tool_chain.invoke({"prompt":task,"OBJECTIVE":OBJECTIVE,"format_instructions":output_parser.get_format_instructions()})
+
          # Use tool 
-         
+         for key,value in tool_use.items():
+             print(value)
+               
 
-
-         return 
 
          
          
@@ -143,15 +184,18 @@ class TaskCreationAgent:
           while True: 
                if task_list: # Check the task_list is not empty
                     for task in task_list: # iterate thought each task in the task list 
-                         Thoughts = self.interpret_task(task  = task,output_format=interpretationFormat)
+                         Thoughts = self.interpret_task(task=task)
+                         
                          print(Thoughts)
-                         agent_task_list = self.create_tasks(prompt = task, thought_string = Thoughts ,output_format=TaskOutputFormat)
-                         #task_list = task_list.remove(task)
+
+                         agent_task_list = self.create_tasks(prompt = task, thought_string = Thoughts)
+                        
                          
                          #with ThreadPoolExecutor() as executor: # Agent is going to execute the tasks in parallel 
                          for agent_task in agent_task_list['tasks']:
                              print("\033[94m\033[1m" + f"TASK {agent_task['id']} : " + f"{agent_task['description']}" + "\033[0m")
-                             #self.execute_task(task = agent_task['description'],prompt=)
+                             tools = self.execute_task(task = agent_task['description'])
+                             print(tools)
                              #      print('Task : ',value)
                                    #future = executor.submit(self.execute_tasks(task), task, task_list, OBJECTIVE)
    
@@ -199,11 +243,11 @@ class TaskCreationAgent:
 
 
 from config.config import config
-from prompts.prompt import init_prompt
+from prompts.prompt import task
 
 
 if __name__=='__main__':
         
         agent = TaskCreationAgent(config = config, llm = ChatOpenAI)
         
-        agent.main(user_prompt= init_prompt)
+        agent.main(user_prompt= task)

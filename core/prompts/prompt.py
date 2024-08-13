@@ -1,6 +1,6 @@
 # This file houses all of the prompts 
 
-init_prompt = """
+task = """
 I am applying for a new job and need your assistance in crafting a strong, updated CV. I have an old CV and the job description saved in my file system, which you have access to.
 
 Your task is to leverage these resources, along with your access to vast information, including the internet and relevant files in the database, to help me write a compelling new CV.
@@ -230,7 +230,7 @@ task_execution_prompt = ChatPromptTemplate.from_messages([
 Planner_prompt = f"""
         Analyze the following career development prompt:
 
-        {init_prompt}
+        {task}
 
         Please provide a structured breakdown of this prompt into smaller sub-tasks.
 
