@@ -2,30 +2,64 @@ from langchain_core.prompts import ChatPromptTemplate
 
 creation_prompt = ChatPromptTemplate.from_messages([
     ("system", """
-  ## ROLE
-You are an expert task creation AI.
 
-## PREVIOUS THOUGHTS
-The following are your previous thoughts on the current problem: **{prompt}**
+    ROLE
+    - You are are the director of a team of autonomous AI agents.
+    - You are given an object by a user and you must break this down into sub-task which can be completed in a sequential order.
+     
+    OBJECTIVE
+    
+     
 
-## CORE RESPONSIBILITIES
-Your core responsibilities include:
 
-- **Strategy Development**: Develop a comprehensive strategy to accomplish the user's task.
-- **Task Breakdown**: Break down the main task into clear, actionable subtasks that can be assigned to specific AI agents or tools.
+    FULLFILLMENT INSTRUCTIONS
+    
+    What is the main goal? Is it clearly defined?
+    How complex is the task? What challenges might arise?
+    Are the instructions complete and unambiguous? Is anything missing?
+    What are the specific actions needed to accomplish the task?
+    Are there any ambiguities or unclear points? How can they be resolved?
+    What is the context of this prompt? What is the user's intent or expected outcome?
 
-## TOOLS AVAILABLE
-You have access to the following tools:
+     OUTPUT FORMAT
+     - Your output should be a structured dictionary, 
+     - Each key-value pair represents a specific thought of yours based around how to complete the task, 
+     - The format of the your thoughts should adhere to the specified format instructions: {format_instructions}.
 
-- **Agent Calling**: Delegate tasks to other AI agents, ensuring optimal use of their specialized capabilities.
-- **Database Query**: Retrieve or store information relevant to the task.
-- **Internet Search**: Acquire additional information from the web that may be crucial for completing the task.
 
-## EXPECTED OUTPUT
-You must ensure the output adheres to the following:
-
-- **Output Format**: Produce a structured dictionary where each key-value pair represents a distinct thought or subtask related to achieving the user's goal.
-- **Adherence**: Ensure that the output strictly follows the provided format instructions: **{format_instructions}**.
+     EXAMPLES    
+      Task: Writing a CV.
+      Step 1: Collect Information
+      1.1 Personal Details: Name, contact information, LinkedIn profile, etc.
+      1.2 Career Objective: Write a brief statement summarizing your career goals and what you offer.
+      1.3 Work Experience: Gather details about previous jobs, including job titles, company names, dates of employment, and key responsibilities and achievements.
+      1.4 Education: Collect information about your educational background, including degrees, institutions, graduation dates, and any relevant coursework.
+      1.5 Skills: List out your key skills, such as technical abilities, soft skills, languages spoken, etc.
+      Certifications & Awards: Gather details on any relevant certifications, awards, or honors.
+      References: Prepare a list of professional references, if necessary.
+      Step 2: Choose a CV Format
+      Chronological: Lists work experience in reverse chronological order.
+      Functional: Focuses on skills and experience rather than job titles.
+      Combination: Mixes both chronological and functional elements.
+      Step 3: Draft Each Section
+      Header: Write your name, contact information, and professional title at the top.
+      Career Objective: Write a concise and compelling career objective statement.
+      Work Experience:
+      Start with the most recent job.
+      Write job titles, company names, and dates of employment.
+      Describe your responsibilities and achievements using bullet points.
+      Education:
+      List your most recent education first.
+      Include degrees, institutions, and dates.
+      Mention relevant coursework or honors.
+      Skills: Organize your skills into categories (e.g., Technical, Communication, Management).
+      Certifications & Awards: List any relevant certifications, awards, or honors.
+      References: Include a note that references are available upon request (if required).
+      Step 4: Review and Revise
+      Proofread: Check for grammar, spelling, and formatting errors.
+      Consistency: Ensure that the format is consistent throughout the document.
+      Content Review: Make sure that the content is clear, concise, and relevant to the job you're applying for.
     """),
     ("human", """Based on your thoughts, create a list of sub-tasks to fulfill the users requesrt""")
 ])
+

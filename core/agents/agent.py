@@ -52,7 +52,7 @@ from output_formats import (
 
 import json 
 import tools 
-class TaskCreationAgent:
+class Director:
      def __init__(self,config,llm):
         # agent config
         self.config = config 
@@ -63,10 +63,7 @@ class TaskCreationAgent:
         # non-config vars 
         self.persona = None
         self.thoughts = {}
-        self.tools = {
-            "data_base_query_tool":tools.query_data_base,
-            "write_to_system_tool":tools.write_to_file
-            }
+        self.s
 
      def use_tool(self,tool_selected,tool_arguments):
           """
@@ -139,8 +136,11 @@ class TaskCreationAgent:
           return thought_string
     
      def create_tasks(self,prompt,thought_string):
+          """
+          This functions takes in the users query and breaks in down into a set of tasks to complete.
+          """
           print(f"\033[95m\033[1m"+"\n***** Creating_tasks *****\n"+"\033[0m\033[0m")
-          
+
           from prompts.user_prompt import task as OBJECTIVE
 
           output_parser = JsonOutputParser(pydantic_object=TaskOutputFormat) # Create a pydantic output parser
@@ -170,11 +170,6 @@ class TaskCreationAgent:
              print(value)
                
 
-
-         
-         
- 
-    
      def main(self,user_prompt):
           task_list = [user_prompt]
 
@@ -248,6 +243,6 @@ from prompts.prompt import task
 
 if __name__=='__main__':
         
-        agent = TaskCreationAgent(config = config, llm = ChatOpenAI)
+        agent = Director(config = config, llm = ChatOpenAI)
         
         agent.main(user_prompt= task)
