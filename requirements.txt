@@ -20,3 +20,5 @@ markdown
 typing_extensions
 requests
 'transformers[torch]'
+
+nebula3-python==3.8.2
