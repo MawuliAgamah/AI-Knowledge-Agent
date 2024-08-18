@@ -8,12 +8,20 @@ from langchain_core.pydantic_v1 import (
 from typing import List, Dict
 
 
+class SubTask(BaseModel):
+    """
+    Schema for sub-tasks 
+    """
+    id : int = Field(description = "")
+    sub_task : str = Field(description= "description of the sub task to be completed")
+
 class Task(BaseModel):
     """
     Schema for an individual task.
     """
     id: int = Field(description=" A unique number to identify the task")
-    description: str = Field(description="Description of the sub-task required to complete the users objective.")
+    task: str = Field(description="Description of the task")
+    subtasks : List[SubTask] = Field(description = "list of sub tasks to be completed")
 
 class TaskOutputFormat(BaseModel):
     """
@@ -21,8 +29,6 @@ class TaskOutputFormat(BaseModel):
     The agent takes in a prompt and returns a list of tasks related to the problem.
     """
     tasks: List[Task] = Field(description="A list of indiviual tasks")
-
-
 
 class Thought(BaseModel):
     """
