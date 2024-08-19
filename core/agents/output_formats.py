@@ -8,11 +8,23 @@ from langchain_core.pydantic_v1 import (
 from typing import List, Dict
 
 
+class ReviewTask(BaseModel):
+    """
+    Schema for task review
+    """
+#    review : str = Field(description= "Analysis and review of the task")
+    review : str = Field(description= "Improvements to be made to the sub-task")
+    improved_task : str = Field(description= "New version of the sub-task based on suggested improvements")
+
+
+
+
+
 class SubTask(BaseModel):
     """
     Schema for sub-tasks 
     """
-    id : int = Field(description = "")
+    id : int = Field(description = "sub task id")
     sub_task : str = Field(description= "description of the sub task to be completed")
 
 class Task(BaseModel):

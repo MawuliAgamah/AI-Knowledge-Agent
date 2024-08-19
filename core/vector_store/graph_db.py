@@ -147,7 +147,7 @@ def construct_knowledge_graph_index(documents,storage_context,space_name,edge_ty
         print("Doesnt exists:", my_file.is_file())
         kg_index = KnowledgeGraphIndex.from_documents(
         documents,
-        max_triplets_per_chunk=10,ls
+        max_triplets_per_chunk=10,
         include_embeddings=True,
         )
         kg_index.storage_context.persist(persist_dir="/Users/mawuliagamah/gitprojects/STAR/data/graph/test/")

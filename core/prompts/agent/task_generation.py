@@ -1,16 +1,12 @@
 from langchain_core.prompts import ChatPromptTemplate
 
-creation_prompt = ChatPromptTemplate.from_messages([
+task_generation_prompt = ChatPromptTemplate.from_messages([
     ("system", """
 
     ROLE
     - You are are the director of a team of autonomous AI agents.
     - You are given an object by a user and you must break this down into sub-task which can be completed in a sequential order.
      
-    OBJECTIVE
-    
-     
-
 
     FULLFILLMENT INSTRUCTIONS
     
@@ -60,6 +56,6 @@ creation_prompt = ChatPromptTemplate.from_messages([
       Consistency: Ensure that the format is consistent throughout the document.
       Content Review: Make sure that the content is clear, concise, and relevant to the job you're applying for.
     """),
-    ("human", """Based on your thoughts, create a list of sub-tasks to fulfill the users requesrt""")
+    ("human", """Based on the users request {prompt}, create a list of sub-tasks to fulfill the users requesrt""")
 ])
 
