@@ -38,6 +38,7 @@ from prompts.agent.task_review import task_review_prompt
 from concurrent.futures import ThreadPoolExecutor
 
 MODEL = "gpt-3.5-turbo"
+# MODEL = "gpt-4o"
 from prompts.user_prompt import task as OBJECTIVE
 from prompts.agent.input_interpretation import interpretation_prompt
 
@@ -77,7 +78,7 @@ def use_tool(tool_selected,tool_arguments):
             raise ValueError(f"Tool '{tool_selected}' is not available.")
  
 def llm():
-     llm = ChatOpenAI(model = MODEL, api_key = config['api_key'],temperature= 1.5)
+     llm = ChatOpenAI(model = MODEL, api_key = config['api_key'],temperature= 1.5,max_tokens = 500)
      return llm 
 
 
@@ -113,8 +114,10 @@ def interpret_task(task):
 
 def create_tasks(task):
      """This functions takes in the users query and breaks in down into a set of tasks to complete."""
-     print(f"\033[95m\033[1m"+"\n***** Creating_tasks *****\n"+"\033[0m\033[0m")
+     print(f"\033[95m\033[1m"+"\n - - - - -  Creating Tasks  - - - - - \n"+"\033[0m\033[0m")
      output_parser = JsonOutputParser(pydantic_object=TaskOutputFormat) # Create a pydantic output parser
+
+     
      task_chain = task_generation_prompt | llm() | output_parser 
      # tasks = task_chain.invoke({"prompt":prompt,"thoughts":thought_string,"format_instructions":output_parser.get_format_instructions()})
      tasks = task_chain.invoke({"prompt":task,"format_instructions":output_parser.get_format_instructions()})
@@ -123,15 +126,29 @@ def create_tasks(task):
 
 
 
+from langchain_core.prompts import PromptTemplate
 
 from output_formats import ReviewTask
+
 def handle_task(task):
-     """This functions takes in the agents list of tasks and reviews and improves upon them"""
+     """
+     This functions takes in the agents list of tasks and reviews and improves upon them
+     """
      print(f"\033[95m\033[1m"+"\n***** REVEIWING TASKS *****\n"+"\033[0m\033[0m")
      output_parser = JsonOutputParser(pydantic_object=ReviewTask) # Create a pydantic output parser
-     tool_chain = task_review_prompt | llm() | output_parser # Create a chain which takes in the prompt, the model and output parser
-     prompt =  f"""You have been given the task of {task}. What improvements can be made to this task given the users objective : {OBJECTIVE} """
-     review_of_task = tool_chain.invoke({"prompt":prompt,"format_instructions":output_parser.get_format_instructions()})
+     prompt = PromptTemplate(
+            template=task_review_prompt,
+            input_variables=["TASK","OBJECTIVE"],
+            partial_variables={"format_instructions": output_parser.get_format_instructions()}
+     )
+     ai = llm() 
+     tool_chain = prompt | ai | output_parser # Create a chain which takes in the prompt, the model and output parser
+     
+     input_prompt = f"""You have received the following task from your group leader: \n\n{task}\n\n
+     Please review this task and provide improvements. Ensure that the revised task aligns with the objectives outlined here: \n\n{OBJECTIVE}\n\n
+     Your goal is to make the task clearer, more effective, and better aligned with the intended outcomes."""
+
+     review_of_task = tool_chain.invoke({"TASK":task,"GLOBAL_OBJECTIVE":OBJECTIVE})
 
      print(review_of_task)
 
@@ -161,8 +178,8 @@ def run_agent(user_prompt):
                if task_list: # Check the task_list is not empty
                     for task in task_list: # iterate thought each task in the task list 
                          # Thoughts = interpret_task(task=task)
-                         print(Thoughts)
                          agent_task_list = create_tasks(task = task)
+                         print(agent_task_list)
                          #with ThreadPoolExecutor() as executor: # Agent is going to execute the tasks in parallel 
                          for agent_task in agent_task_list['tasks']:
                              print("\033[94m\033[1m" + f"TASK {agent_task['id']} : " + f"{agent_task['task']}" + "\033[0m")
@@ -171,7 +188,7 @@ def run_agent(user_prompt):
                                   handle_task(task = sub_task['sub_task'])
 
 
-                         print(f"\033[95m\033[1m"+"\n***** TASK COMPLETED, REMOVING TASKS *****\n"+"\033[0m\033[0m")
+                         print(f"\033[95m\033[1m"+"\n*- - - - - TASK COMPLETED , REMOVING TASK - - - - -\n"+"\033[0m\033[0m")
                          task_list = task_list.remove(task)
                else:
                     print(f"\033[95m\033[1m"+"\n***** NO TASKS LEFT *****\n"+"\033[0m\033[0m")

@@ -10,7 +10,7 @@ from typing import List, Dict
 
 class ReviewTask(BaseModel):
     """
-    Schema for task review
+    Schema for task review and improvements
     """
 #    review : str = Field(description= "Analysis and review of the task")
     review : str = Field(description= "Improvements to be made to the sub-task")

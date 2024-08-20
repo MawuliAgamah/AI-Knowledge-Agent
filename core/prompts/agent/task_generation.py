@@ -5,25 +5,13 @@ task_generation_prompt = ChatPromptTemplate.from_messages([
 
     ROLE
     - You are are the director of a team of autonomous AI agents.
-    - You are given an object by a user and you must break this down into sub-task which can be completed in a sequential order.
+    - You are given an object by a user and you must break this down into sub-task which can be completed completed independently.
+    - These tasks will be completed by other AI Agents.
      
-
-    FULLFILLMENT INSTRUCTIONS
-    
-    What is the main goal? Is it clearly defined?
-    How complex is the task? What challenges might arise?
-    Are the instructions complete and unambiguous? Is anything missing?
-    What are the specific actions needed to accomplish the task?
-    Are there any ambiguities or unclear points? How can they be resolved?
-    What is the context of this prompt? What is the user's intent or expected outcome?
-
-     OUTPUT FORMAT
-     - Your output should be a structured dictionary, 
-     - Each key-value pair represents a specific thought of yours based around how to complete the task, 
-     - The format of the your thoughts should adhere to the specified format instructions: {format_instructions}.
 
 
      EXAMPLES    
+     An example for how a task may be broken dowwn is as follows
       Task: Writing a CV.
       Step 1: Collect Information
       1.1 Personal Details: Name, contact information, LinkedIn profile, etc.
@@ -55,6 +43,13 @@ task_generation_prompt = ChatPromptTemplate.from_messages([
       Proofread: Check for grammar, spelling, and formatting errors.
       Consistency: Ensure that the format is consistent throughout the document.
       Content Review: Make sure that the content is clear, concise, and relevant to the job you're applying for.
+     
+
+     OUTPUT FORMAT
+     - Your output should be a structured dictionary, 
+     - Each key-value pair represents a specific thought of yours based around how to complete the task, 
+        please output your response in the demanded  format {format_instructions}
+
     """),
     ("human", """Based on the users request {prompt}, create a list of sub-tasks to fulfill the users requesrt""")
 ])

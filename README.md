@@ -4,9 +4,9 @@
 
 
 
-Setting up nebula db 
+# Nebula DB setting instructions (docker compose) 
 
-link : https://docs.nebula-graph.io/2.0/2.quick-start/2.deploy-nebula-graph-with-docker-compose/#how-to-upgrade-nebula-graph-services]]
+[Deploying with docker compose](https://docs.nebula-graph.io/2.0/2.quick-start/2.deploy-nebula-graph-with-docker-compose/#how-to-upgrade-nebula-graph-services)
 
 cd nebula 
 cd nebula-docker-compose/
