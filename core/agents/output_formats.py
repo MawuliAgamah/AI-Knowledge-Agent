@@ -5,7 +5,7 @@ from langchain_core.pydantic_v1 import (
     Field
     )
 
-from typing import List, Dict
+from typing import List, Dict,Any
 
 
 class ReviewTask(BaseModel):
@@ -14,9 +14,7 @@ class ReviewTask(BaseModel):
     """
 #    review : str = Field(description= "Analysis and review of the task")
     review : str = Field(description= "Improvements to be made to the sub-task")
-    improved_task : str = Field(description= "New version of the sub-task based on suggested improvements")
-
-
+    improved_task : str = Field(description= "New version of the sub-task based on suggested improvements to be given to the next AI agent to execute.")
 
 
 
@@ -76,11 +74,25 @@ class interpretationFormat(BaseModel):
 
 class ExecuteTaskFormat(BaseModel):
     """
-    Schema for agent task execution.
+    Output format to task execution agent to use a tool
     """
+    message : str | None = Field(
+        description=(
+            "The message to send t othe user. This can be none if a function to call has been provided"
+        )
+    )
 
-    tool_name: str = Field(description="The name of the tool that the agent will use to complete the task.")
-    query: str = Field(description="The query you will be writing to get information from the database")
+    function : str | None = Field(
+        description=(
+            "The name of the function to call. This can be none if no functin call is required and a response is provided"
+        )
+    )
+    arguments : dict[str,Any] | None = Field(
+        description=(
+            "The key is the name of the parameter and the value is the argument to pass to it. This can be none if no function call is required and a response is provided to pass to it. This can be none if no function call is required and a response is provided All parameters must be provided."
+        )
+
+    )
 
 
 class BreakDownTask(BaseModel):
