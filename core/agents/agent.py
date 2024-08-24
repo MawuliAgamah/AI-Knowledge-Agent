@@ -151,7 +151,10 @@ def handle_task(task):
      ai = llm() 
      tool_chain = prompt | ai | output_parser # Create a chain which takes in the prompt, the model and output parser
      review_of_task = tool_chain.invoke({"TASK":task,"GLOBAL_OBJECTIVE":OBJECTIVE})
-     # should we implement some memory thing here
+     
+
+
+     
      return review_of_task['improved_task']
 
 
@@ -194,7 +197,6 @@ def run_agent(user_prompt):
                                   print("\033[92m\033[1m" + f"SUB-TASK {sub_task['id']} : " + f"{sub_task['sub_task']}" +"\033[0m")
                                   refactored_task = handle_task(task = sub_task['sub_task'])
                                   execute_task(task=refactored_task)
-
 
                          print(f"\033[95m\033[1m"+"\n*- - - - - TASK COMPLETED , REMOVING TASK - - - - -\n"+"\033[0m\033[0m")
                          task_list = task_list.remove(task)
