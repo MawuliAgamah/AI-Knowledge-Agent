@@ -81,21 +81,10 @@
 
 # Currently Working On : 
 
-- [] **Working on llm and Agent Class**
-            Agent.py
-                working on the main function. I am working on defining an entry 
-                point for the agent.So defining a set of tasks and thus an etry point for the language model
+- [] ** Agent function calling **
+    Agent currently returns a response with a query and the name of the function, need to connect this up to the database now
+    I think however i am going to try and make a front end and start making it into more of a application.
 
-            Currently working on reasoning:
-                1) Creating a chat method in the agent to make it really easy to 
-                send in a prompt and get an outpit
-                
-
-
-            What is the agent architecuture I should use here?
-
-            I am currently using the babyAGI codebase to build my agent class 
- 
 - [] **Clean up prompts and code, so it is easy to follow and organise, prompt templates are a bit of a mess right now.
 How do we get our prompts from markdown into langchains prompt template?
 

@@ -1,7 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate
 
 
-
 task_review_prompt = """
     ROLE
     You are an AI text analysis agent specialized in optimizing task descriptions for clarity and alignment with objectives. 

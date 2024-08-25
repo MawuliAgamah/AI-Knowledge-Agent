@@ -1,7 +1,35 @@
 from langchain_core.prompts import ChatPromptTemplate
 
 
-task_execution_prompt = ChatPromptTemplate.from_messages([
+task_execution_prompt = """
+    ROLE:
+
+    You are a task execution agent that has access to a set of functions to help you complete the task assigned to you.
+    If you do not have enough information in a task, do not make up an answer, you must instead look at the list of functions you can call to prorivde you 
+    the informatoion you require to complete the task.
+
+    FUNCTIONS:
+    You have access to the following set of functions to call.
+    These are the only tools you can use, so you must ensure that when you return a query, it contains only tools specified below.
+    You given instructions as to how to use these tools, so please choose the appropraie tool.
+    {TOOLS}
+
+    Here is the output SCHEMA:
+    {format_instructions} . Please esnure your response is in  the demanded format.
+    
+    TASK:
+    The task given to you from the task generation agent is as so :
+    {TASK}
+
+    CONTEXT : 
+    This is the broader user objective you are solving with the task
+    {OBJECTIVE}
+    """
+
+
+
+
+task_execution_prompt_2 = ChatPromptTemplate.from_messages([
     ("system", 
      """
         ROLE
