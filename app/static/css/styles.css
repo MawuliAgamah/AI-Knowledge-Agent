@@ -1,0 +1,76 @@
+
+/* --------- Global --------- */ 
+
+ul,
+ol {
+  padding: 0 1rem;
+}
+
+
+
+code {
+  background-color: rgba(#616161, 0.1);
+  color: #616161;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+blockquote {
+  padding-left: 1rem;
+  border-left: 2px solid rgba(#0D0D0D, 0.1);
+}
+
+hr {
+  border: none;
+  border-top: 2px solid rgba(#0D0D0D, 0.1);
+  margin: 2rem 0;
+}
+
+button {
+  font-size: inherit;
+  font-family: inherit;
+  color: #000;
+  margin: 0.1rem;
+  border: 1px solid black;
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.4rem;
+  background: white;
+  accent-color: black;
+  box-shadow: 0 0 1px 0px black inset, 0 0 1px 0px black;
+}
+
+button:disabled{
+  opacity: .3;
+}
+
+.is-active {
+  background: black;
+  color: #fff
+}
+
+.tiptap.ProseMirror{
+    height:500px;
+    padding:20px;
+}
+
+/* --------- Layout --------- */
+.layout-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #f0f0f0;
+  padding: 20px;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+}
+
+/* Existing styles... */
