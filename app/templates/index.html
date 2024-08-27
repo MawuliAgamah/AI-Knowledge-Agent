@@ -2,15 +2,15 @@
 {% block content%}
 <script src="https://cdn.jsdelivr.net/gh/efpage/DML/lib/DML.js"></script>
 <script type="module" src="{{ url_for('static', path='js/editor.js') }}"></script>
-<script src="{{ url_for('static', path='js/sidebar.js') }}"></script>
+<!-- <script src="{{ url_for('static', path='js/sidebar.js') }}"></script> -->
 
 <div class="layout-container">
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <!-- <aside class="sidebar"> -->
 
-        <!-- Add more sidebar content here -->
+    <!-- Add more sidebar content here -->
 
-    </aside>
+    <!-- </aside> -->
 
     <!-- Main Content -->
     <main class="main-content">
@@ -22,9 +22,12 @@
                 <div id="editor-menu-bar"> </div>
             </div>
             <div class="editors-wrapper">
-
                 <div class="prompt-editor-wrapper">
-                    <div class="prompt-editor-element"> </div>
+                    <div id="prompt-text-editor" class="prompt-editor-element"> </div>
+                    <form method="post" id="promptForm">
+                        <!-- <input type="text" name="prompt" id="prompt" placeholder="Enter your prompt here" required> -->
+                        <button type="submit" class="prompt-editor-button" name="submit-prompt">Submit</button>
+                    </form>
                 </div>
                 <div class="text-editor-wrapper">
                     <div class="text-editor-element"> </div>
@@ -32,5 +35,43 @@
             </div>
         </div>
     </main>
+    <script>
+        // Add event listener to the prompt form for submission
+        document.getElementById('promptForm').addEventListener('submit', function (e) {
+            // Prevent the default form submission
+            e.preventDefault();
+
+            // Get the text from the prompt editor
+            const promptText = document.getElementById('prompt-text-editor').innerText;
+
+            // Send a POST request to the server with the prompt text
+            fetch('/handle_prompt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'prompt': promptText
+                })
+            })
+                .then(response => {
+                    // Check if the response is ok, otherwise throw an error
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Log the successful response data
+                    console.log('Success:', data);
+                    // TODO: Handle the successful response (e.g., display a success message)
+                })
+                .catch(error => {
+                    // Log any errors that occur during the fetch
+                    console.error('Error:', error);
+                    // TODO: Handle the error (e.g., display an error message to the user)
+                });
+        });
+    </script>
 </div>
 {% endblock content%}

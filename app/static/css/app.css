@@ -562,6 +562,10 @@ video {
   display: block;
 }
 
+.hidden {
+  display: none;
+}
+
 .text-xl {
   font-size: 1.25rem;
   line-height: 1.75rem;
