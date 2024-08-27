@@ -24,24 +24,6 @@ app.mount("/static", StaticFiles(directory=BASE_DIR/'static'), name="static")
 
 app.add_middleware(GZipMiddleware)
 
-templates = Jinja2Templates(directory=BASE_DIR / 'templates')
-
-# Define the route for the home page
-@app.get('/', response_class=HTMLResponse)
-async def index(request: Request):
-    posts = [
-        {"id": 1, "title": "fastapi.blog title 1", "body": "Learn FastAPI with the fastapi.blog team 1"},
-        {"id": 2, "title": "fastapi.blog title 2", "body": "Learn FastAPI with the fastapi.blog team 2"},
-        {"id": 3, "title": "fastapi.blog title 3", "body": "Learn FastAPI with the fastapi.blog team 3"},
-    ]
-    context = {
-        "request": request,
-        "posts": posts,
-        "title": "Home Page"
-    }
-    return templates.TemplateResponse("index.html", context)
-
-
 origins = ["*"]
 
 app.add_middleware(
@@ -51,6 +33,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+templates = Jinja2Templates(directory=BASE_DIR / 'templates')
+
+# Define the route for the home page
+@app.get('/', response_class=HTMLResponse)
+async def index(request: Request):
+    context = {
+        "request": request,
+        "title": "Home Page"
+    }
+    return templates.TemplateResponse("index.html", context)
+
+
 
 
 @app.post("/handle_prompt")

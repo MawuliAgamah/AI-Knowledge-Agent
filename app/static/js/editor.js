@@ -73,3 +73,98 @@ const promptEditor = new Editor({
     extensions: [StarterKit],
     content: '<p>....</p>',
 })
+
+
+
+
+
+
+
+
+
+// Helper text functionality
+const helperText = document.createElement('div');
+helperText.className = 'helper-text';
+helperText.style.position = 'absolute';
+helperText.style.display = 'none';
+document.body.appendChild(helperText);
+// Function to update helper text position and content
+function updateHelperText(view) {
+    const { state } = view;
+    const { selection } = state;
+    const { from } = selection;
+
+    // Get the cursor coordinates relative to the editor
+    const start = view.coordsAtPos(from);
+
+    helperText.textContent = '⌘ + k to chat';
+    helperText.style.display = 'block';
+    helperText.style.color = 'grey';  // Set the text color to grey
+
+    const cursorWidth = 2;   // Cursor width is approximated
+    const padding = 5;       // Add some padding
+
+    // Get the parent container with class 'text-editor-element'
+    const editorElement = document.querySelector('.text-editor-element');
+    const editorRect = editorElement.getBoundingClientRect();
+
+    // Calculate position relative to the parent container
+    const relativeLeft = start.left - editorRect.left;
+    const relativeTop = start.top - editorRect.top;
+
+    // Position to the right of the cursor
+    helperText.style.position = 'absolute';
+    helperText.style.left = `${relativeLeft + cursorWidth + 25}px`;
+    helperText.style.top = `${relativeTop + 232}px`;
+
+    // Ensure the helper text doesn't go off-screen to the right
+    const helperTextRect = helperText.getBoundingClientRect();
+    if (helperTextRect.right > editorRect.right) {
+        helperText.style.left = `${relativeLeft - helperTextRect.width - padding}px`;
+    }
+
+    // Append the helper text to the parent container if it's not already there
+    if (!editorElement.contains(helperText)) {
+        editorElement.appendChild(helperText);
+    }
+}
+
+// Show helper text when the editor gains focus
+editor.on('focus', ({ editor, event }) => {
+    updateHelperText(editor.view);
+});
+
+
+
+// Hide helper text when the editor loses focus
+editor.on('blur', () => {
+    helperText.style.display = 'none';
+});
+
+// Update helper text position when the cursor moves
+editor.on('selectionUpdate', ({ editor }) => {
+    if (editor.isFocused) {
+        updateHelperText(editor.view);
+    }
+});
+
+// Update helper text position when the content changes
+editor.on('update', ({ editor }) => {
+    if (editor.isFocused) {
+        // Check if the content has changed
+        if (editor.state.doc.content !== editor.state.doc.type.createAndFill().content) {
+            helperText.style.display = 'none';
+        } else {
+            updateHelperText(editor.view);
+        }
+    }
+});
+
+// Hide helper text when user starts typing
+editor.on('transaction', ({ transaction }) => {
+    if (transaction.docChanged) {
+        helperText.style.display = 'none';
+    }
+});
+
+
