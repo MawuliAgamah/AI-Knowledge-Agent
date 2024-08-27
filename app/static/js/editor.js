@@ -26,40 +26,50 @@ const actions = [
     { name: "redo", command: 'redo', disable: true }
 ]
 
-// Check Activation of buttons
-function checkActive() {
-    for (let i in actions) {
-        let a = actions[i]  // 
-        if (a.disable) {
-            if (editor.can().chain().focus()[a.command]().run())
-                a.button.removeAttribute("disabled")
-            else
-                a.button.setAttribute("disabled", "true")
+// Check activation status of buttons
+function updateButtonStates() {
+    actions.forEach(action => {
+        const { button, disable, name, command } = action
+
+        // Update disabled state
+        if (disable) {
+            button.disabled = !editor.can().chain().focus()[command]().run()
         }
-        if (a.button.classList.contains('is-active')) {
-            if (!editor.isActive(a.name)) a.button.classList.remove('is-active')
-        } else
-            if (editor.isActive(a.name)) a.button.classList.add('is-active')
-    }
+
+        // Update active state
+        const isActive = editor.isActive(name)
+        button.classList.toggle('is-active', isActive)
+    })
 }
 
 
-let editor = new Editor({
-    element: document.querySelector('.text_editor_element'),
-    extensions: [StarterKit,],
+// Create editor instance
+const editor = new Editor({
+    element: document.querySelector('.text-editor-element'),
+    extensions: [StarterKit],
     content: '<p>....</p>',
-    onTransaction({ editor }) {
-        checkActive()
+    onTransaction: updateButtonStates
+})
+
+// Populate menu bar with action buttons
+selectBase("editor-menu-bar")
+actions.forEach(action => {
+    const { name, command, argument } = action
+    action.button = button(name)
+    action.button.onclick = () => {
+        const chain = editor.chain().focus()
+        argument ? chain[command](argument).run() : chain[command]().run()
     }
 })
-selectBase("MenueBar") // Fill the menue-Bar
-for (let i in actions) {
-    let a = actions[i]  // get the command definition
-    a.button = button(a.name)  // Create a button
-    if (a.argument)
-        a.button.onclick = () => editor.chain().focus()[a.command](a.argument).run()
-    else
-        a.button.onclick = () => editor.chain().focus()[a.command]().run()
-}
 unselectBase()
 
+// Initial button state update
+updateButtonStates()
+
+
+// Prompt Editor
+const promptEditor = new Editor({
+    element: document.querySelector('.prompt-editor-element'),
+    extensions: [StarterKit],
+    content: '<p>....</p>',
+})

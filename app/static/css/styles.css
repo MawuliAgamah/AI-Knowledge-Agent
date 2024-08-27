@@ -51,10 +51,7 @@ button:disabled{
   color: #fff
 }
 
-.tiptap.ProseMirror{
-    height:500px;
-    padding:20px;
-}
+
 
 /* --------- Layout --------- */
 .layout-container {
@@ -73,4 +70,61 @@ button:disabled{
   padding: 20px;
 }
 
-/* Existing styles... */
+/* --------- Header --------- */
+
+.header{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 20px;
+}
+
+
+/* --------- Editors --------- */
+
+
+
+.editors-wrapper{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+
+.prompt-editor-wrapper .tiptap:last-child {
+  border: 1px solid black;
+  border-radius: 0.25rem;
+  background: white;
+  accent-color: black;
+  box-shadow: 0 0 1px 0px black inset, 0 0 1px 0px black;
+  margin-left: 20px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  height: 80px;
+  padding-left: 20px;
+  padding-top: 10px;
+  width: 60%;
+}
+
+.text-editor-wrapper .tiptap:first-child{
+  justify-content: center;
+  
+  border: 1px solid black;
+  border-radius: 0.25rem;
+  background: white;
+  accent-color: black;
+  box-shadow: 0 0 1px 0px black inset, 0 0 1px 0px black;
+  margin-left: 20px;
+  margin-top: 20px;
+  height: 500px;
+  padding: 20px;
+  width: 80%;
+
+
+}
+
+.editor-menu-wrapper{
+  margin-left: 20px;
+  margin-top: 20px;
+} 
+
