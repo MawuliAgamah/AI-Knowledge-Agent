@@ -19,7 +19,7 @@ This tool simplifies the process of querying the database, making it easy to acc
 
 """
 
-from vector_store.vector_db import DataBasePipeline
+from core.vector_store.vector_db import DataBasePipeline
 database_pipeline = DataBasePipeline(reset_client=False)
 
 def query_data_base(query):

@@ -46,13 +46,26 @@ async def index(request: Request):
     }
     return templates.TemplateResponse("index.html", context)
 
+import sys
+sys.path.append("..") 
 
-
+from core.agents.agent import run_agent
+from core.log import logger
 
 @app.post("/handle_prompt")
 async def handle_prompt(prompt: str = Form(...)):
     # Process the prompt here
-    print(prompt)
+    # Import run_agent from the correct module path
+
+    try:
+        run_agent(user_prompt=prompt)
+    except Exception as e:
+        logger.error(f"An error occurred while running the agent: {str(e)}")
+        return JSONResponse({
+            "msg": "An error occurred while processing the prompt",
+            "error": str(e)
+        }, status_code=500)
+    
     return JSONResponse({
         "msg": "Prompt received successfully",
         "prompt": prompt,

@@ -7,7 +7,7 @@ from dotenv import load_dotenv, find_dotenv
 from pathlib import Path
 
 
-from log import logger
+from core.log import logger
 
 
 

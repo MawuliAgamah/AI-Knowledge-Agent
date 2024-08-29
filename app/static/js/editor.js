@@ -56,15 +56,14 @@ selectBase("editor-menu-bar")
 actions.forEach(action => {
     const { name, command, argument } = action
     action.button = button(name)
+    action.button.classList.add('editor-action-button') // Add a common class to all buttons
     action.button.onclick = () => {
         const chain = editor.chain().focus()
         argument ? chain[command](argument).run() : chain[command]().run()
     }
 })
 unselectBase()
-
-// Initial button state update
-updateButtonStates()
+updateButtonStates() // Initial button state update
 
 
 // Prompt Editor
@@ -76,26 +75,43 @@ const promptEditor = new Editor({
 
 
 
-
-
-
-
-
-
 // Helper text functionality
 const helperText = document.createElement('div');
 helperText.className = 'helper-text';
 helperText.style.position = 'absolute';
 helperText.style.display = 'none';
 document.body.appendChild(helperText);
+
+
+// Function to get caret position
+function getCaretPosition() {
+    const selection = window.getSelection();
+    const range = selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+    if (!range) {
+        console.warn('No valid selection range found');
+        return { x: 0, y: 0 };
+    }
+    const preCaretRange = range.cloneRange();
+    preCaretRange.selectNodeContents(document.querySelector('.text-editor-element'));
+    preCaretRange.setEnd(range.endContainer, range.endOffset);
+    const rect = preCaretRange.getBoundingClientRect();
+
+    const x = rect.right;
+    const y = rect.bottom;
+
+    console.log("Caret Position x pos:", x, "Caret Position y pos:", y);
+
+    return { x, y };
+}
+
 // Function to update helper text position and content
 function updateHelperText(view) {
     const { state } = view;
     const { selection } = state;
     const { from } = selection;
 
-    // Get the cursor coordinates relative to the editor
-    const start = view.coordsAtPos(from);
+    // Get the cursor coordinates using getCaretPosition
+    const caretPos = getCaretPosition();
 
     helperText.textContent = '⌘ + k to chat';
     helperText.style.display = 'block';
@@ -104,18 +120,15 @@ function updateHelperText(view) {
     const cursorWidth = 2;   // Cursor width is approximated
     const padding = 5;       // Add some padding
 
-    // Get the parent container with class 'text-editor-element'
-    const editorElement = document.querySelector('.text-editor-element');
-    const editorRect = editorElement.getBoundingClientRect();
-
-    // Calculate position relative to the parent container
-    const relativeLeft = start.left - editorRect.left;
-    const relativeTop = start.top - editorRect.top;
 
     // Position to the right of the cursor
     helperText.style.position = 'absolute';
-    helperText.style.left = `${relativeLeft + cursorWidth + 25}px`;
-    helperText.style.top = `${relativeTop + 232}px`;
+    helperText.style.left = `${caretPos.x}px`;
+    helperText.style.top = `${caretPos.y}px`;
+
+    // Get the parent container with class 'text-editor-element'
+    const editorElement = document.querySelector('.text-editor-element');
+    const editorRect = editorElement.getBoundingClientRect();
 
     // Ensure the helper text doesn't go off-screen to the right
     const helperTextRect = helperText.getBoundingClientRect();
@@ -167,4 +180,7 @@ editor.on('transaction', ({ transaction }) => {
     }
 });
 
+
+
+// Handle Highlighted Text and send that to the language model 
 

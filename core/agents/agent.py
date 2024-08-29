@@ -1,8 +1,7 @@
 import sys
 
 sys.path.append("..") 
-
-from log import logger 
+from core.log import logger 
 
 
 from langchain_openai import ChatOpenAI
@@ -21,30 +20,30 @@ from langchain_core.messages import (
 )
 
 # Import all prompts used throughout application
-from prompts.prompt  import (
+from core.prompts.prompt  import (
      Thought_prompt,
      Prompt_message,
      task_creating_prompt,
 )
 
-from config.config import config
+from core.config.config import config
 
-from prompts.agent.input_interpretation import interpretation_prompt
-from prompts.agent.task_generation import task_generation_prompt
-from prompts.agent.task_review import task_review_prompt
-from prompts.agent.task_execution import task_execution_prompt
+from core.prompts.agent.input_interpretation import interpretation_prompt
+from core.prompts.agent.task_generation import task_generation_prompt
+from core.prompts.agent.task_review import task_review_prompt
+from core.prompts.agent.task_execution import task_execution_prompt
 
 from concurrent.futures import ThreadPoolExecutor
 
 MODEL = "gpt-3.5-turbo"
 # MODEL = "gpt-4o"
-from prompts.user_prompt import task as OBJECTIVE
-from prompts.agent.input_interpretation import interpretation_prompt
+from core.prompts.user_prompt import task as OBJECTIVE
+from core.prompts.agent.input_interpretation import interpretation_prompt
 
 
 
 # Output structure for the language model agent 
-from output_formats import (
+from core.agents.output_formats import (
      Task,
      TaskOutputFormat,
      Thought,
@@ -55,11 +54,11 @@ from output_formats import (
 )
 
 import json 
-import tools 
+# from core.agents.tools import tools 
 
 
-tools_dict = {"data_base_query_tool":tools.query_data_base, 
-              "write_to_system_tool":tools.write_to_file}
+#tools_dict = {"data_base_query_tool":tools.query_data_base, 
+#              "write_to_system_tool":tools.write_to_file}
 
 
 def use_tool(tool_selected,tool_arguments):
@@ -124,7 +123,7 @@ def create_tasks(task):
 
 
 from langchain_core.prompts import PromptTemplate
-from output_formats import ReviewTask
+from core.agents.output_formats import ReviewTask
 
 
 def prompt(prompt_string,input_variables,output_format):
@@ -158,8 +157,8 @@ def handle_task(task):
      return review_of_task['improved_task']
 
 
-from tools import *
-from output_formats import ExecuteTaskFormat
+#from tools import *
+from core.agents.output_formats import ExecuteTaskFormat
 def execute_task(task):
      """
      After creating a set of tasks, the agent can then use tools to execute other tasks.
@@ -181,7 +180,6 @@ def execute_task(task):
 
 def run_agent(user_prompt):
           task_list = [user_prompt]
-
           print(f"\033[95m\033[1m"+"\n - - - - - TASK LIST - - - - - \n"+"\033[0m\033[0m")
           print(str(task_list[0]))
           # main loop 
