@@ -98,3 +98,10 @@ class ExecuteTaskFormat(BaseModel):
 class BreakDownTask(BaseModel):
     """Schema outlining how an agent must break down a task"""
     task_breakdown : List[str] = Field(description= "Breakdown of the task handed to agent")
+
+
+class BasicAgentOutputFormat(BaseModel):
+    """
+    Output schema for the basic agent.
+    """
+    response: str = Field(description="Response to the prompt given to the agent")

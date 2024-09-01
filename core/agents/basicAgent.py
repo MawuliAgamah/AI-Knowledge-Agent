@@ -20,11 +20,6 @@ from langchain_core.messages import (
 )
 
 # Import all prompts used throughout application
-from core.prompts.prompt  import (
-     Thought_prompt,
-     Prompt_message,
-     task_creating_prompt,
-)
 
 from core.config.config import config
 
@@ -32,6 +27,7 @@ from core.prompts.agent.input_interpretation import interpretation_prompt
 from core.prompts.agent.task_generation import task_generation_prompt
 from core.prompts.agent.task_review import task_review_prompt
 from core.prompts.agent.task_execution import task_execution_prompt
+from core.prompts.agent.basic_agent import basic_agent_prompt
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -50,7 +46,8 @@ from core.agents.output_formats import (
      Thoughts,
      Interpretation,
      interpretationFormat,
-     ExecuteTaskFormat
+     ExecuteTaskFormat,
+     BasicAgentOutputFormat
 )
 
 import json 
@@ -60,34 +57,29 @@ def llm():
      return llm 
 
 
-def chat(task):
+def chat(user_prompt):
      """This functions takes in the users query and breaks in down into a set of tasks to complete."""
      print(f"\033[95m\033[1m"+"\n - - - - -  Creating Tasks  - - - - - \n"+"\033[0m\033[0m")
-     output_parser = JsonOutputParser(pydantic_object=TaskOutputFormat) # Create a pydantic output parser
+     output_parser = JsonOutputParser(pydantic_object=BasicAgentOutputFormat) # Create a pydantic output parser
      prompt = PromptTemplate(
-            template=task_generation_prompt,
-            input_variables=["OBJECTIVE"],
+            template=basic_agent_prompt,
             partial_variables={"format_instructions": output_parser.get_format_instructions()}
      )
      ai = llm() 
      task_chain = prompt | ai | output_parser 
-     tasks = task_chain.invoke({"OBJECTIVE":task})
+     tasks = task_chain.invoke({"OBJECTIVE":user_prompt})
      return tasks
 
 
 
-def run_agent(user_prompt):
-          task_list = [user_prompt]
-          print(f"\033[95m\033[1m"+"\n - - - - - TASK LIST - - - - - \n"+"\033[0m\033[0m")
-          print(str(task_list[0]))
-          # main loop 
-          while True: 
-               if task_list: # Check the task_list is not empty
-                    for task in task_list: # iterate thought each task in the task list 
-                         agent_task_list = chat(task = task)
-
-                         task_list = task_list.remove(task)
-               else:
-                    print(f"\033[95m\033[1m"+"\n***** NO TASKS LEFT *****\n"+"\033[0m\033[0m")
-                    print("no tasks")
-                    break 
+def run(user_prompt):
+    print(f"\033[95m\033[1m"+"\n - - - - - USER INPUT - - - - - \n"+"\033[0m\033[0m")
+    print(str(user_prompt))
+    try:
+        # main loop 
+        model_response = chat(user_prompt)
+        print(model_response)
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        model_response = None
+    return model_response 

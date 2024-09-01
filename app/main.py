@@ -49,7 +49,7 @@ async def index(request: Request):
 import sys
 sys.path.append("..") 
 
-from core.agents.agent import run_agent
+from core.agents.basicAgent import run
 from core.log import logger
 
 @app.post("/handle_prompt")
@@ -58,7 +58,7 @@ async def handle_prompt(prompt: str = Form(...)):
     # Import run_agent from the correct module path
 
     try:
-        run_agent(user_prompt=prompt)
+        run(user_prompt=prompt)
     except Exception as e:
         logger.error(f"An error occurred while running the agent: {str(e)}")
         return JSONResponse({
@@ -73,4 +73,4 @@ async def handle_prompt(prompt: str = Form(...)):
 
 
 if __name__ == "__main__":
-    uvicorn.run( "main:app", port = 8000,host = '0.0.0.0',reload=True)
+    uvicorn.run("main:app", port=8000, host='0.0.0.0', reload=True, reload_dirs=["./core", "./app"])

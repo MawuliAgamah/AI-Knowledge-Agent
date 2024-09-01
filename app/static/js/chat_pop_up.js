@@ -1,25 +1,3 @@
-// Function to log the bounds of the window
-function logWindowBounds() {
-    const bounds = {
-        width: window.innerWidth,
-        height: window.innerHeight,
-        outerWidth: window.outerWidth,
-        outerHeight: window.outerHeight
-    };
-
-    console.log("Window bounds:", bounds);
-
-    // Log coordinates of each corner
-    console.log(
-        "Top-left corner:", { x: 0, y: 0 },
-        "Top-right corner:", { x: bounds.width, y: 0 },
-        "Bottom-left corner:", { x: 0, y: bounds.height },
-        "Bottom-right corner:", { x: bounds.width, y: bounds.height }
-    );
-}
-logWindowBounds();
-// Log window bounds on resize
-window.addEventListener('resize', logWindowBounds);
 
 
 // Create the pop up element 
@@ -38,31 +16,130 @@ document.body.appendChild(popup);
 
 
 
-function getCaretPosition() {
-    const selection = window.getSelection();
-    if (!selection.rangeCount) return null;
-
-    const range = selection.getRangeAt(0);
-    const editor = document.querySelector('.text-editor-element');
-    if (!editor.contains(range.commonAncestorContainer)) return null;
-
-    const editorRect = editor.getBoundingClientRect();
-    const rangeRect = range.getBoundingClientRect();
-
-    return {
-        x: rangeRect.right - editorRect.left,
-        y: rangeRect.bottom - editorRect.top
-    };
-}
-
 
 
 function getTextEditorBoundaries() {
     const editorElement = document.querySelector('.text-editor-element');
     const editorRect = editorElement.getBoundingClientRect();
-    console.log("Editor rect:", editorRect);
     return editorRect;
 }
+
+function getCaretPosition() {
+    const selection = window.getSelection();
+    const editorElement = document.querySelector('.text-editor-element');
+
+    if (!editorElement.contains(selection.anchorNode)) {
+        return null;
+    }
+
+    if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        return {
+            x: rect.x,
+            y: rect.y,
+            top: rect.top,
+            bottom: rect.bottom
+        };
+    } else {
+        // If there's no selection, return the editor's position
+        const editorRect = editorElement.getBoundingClientRect();
+        return {
+            x: editorRect.x,
+            y: editorRect.y,
+            top: editorRect.top,
+            bottom: editorRect.bottom
+        };
+    }
+}
+
+
+function drawBoundingBox() {
+    const caretPos = getCaretPosition();
+    const editorRect = getTextEditorBoundaries();
+    let boundingBox = document.createElement('div');
+    boundingBox.id = 'caretBoundingBox';
+    document.body.appendChild(boundingBox);
+
+    boundingBox.style.position = 'absolute';
+    boundingBox.style.border = '2px solid red';
+    boundingBox.style.left = `${editorRect.left}px`;
+    boundingBox.style.top = `${caretPos.top}px`;
+    boundingBox.style.pointerEvents = 'none';
+    boundingBox.style.width = `${editorRect.width - 2}px`;
+    boundingBox.style.height = `${(caretPos.bottom - caretPos.top) + 2}px`;
+}
+
+// Function to continuously update the bounding box
+function updateBoundingBox() {
+    const existingBox = document.getElementById('caretBoundingBox');
+    if (existingBox) {
+        existingBox.remove();
+    }
+    drawBoundingBox();
+    requestAnimationFrame(updateBoundingBox);
+}
+
+// Start the continuous update
+document.addEventListener('DOMContentLoaded', function () {
+    updateBoundingBox();
+});
+
+// Add event listeners for user interactions that might change the caret position
+document.querySelector('.text-editor-element').addEventListener('keyup', updateBoundingBox);
+document.querySelector('.text-editor-element').addEventListener('click', updateBoundingBox);
+document.querySelector('.text-editor-element').addEventListener('mouseup', updateBoundingBox);
+
+
+
+
+
+
+// The idea here is that based on the  users caret 
+// We find the HTML element above and below it
+// If nothing below it then pop up will push elements down
+// IF somethign below it we will push them up and down 
+
+function BoundingBox() {
+    const caretPos = getCaretPosition();
+    const editorRect = getTextEditorBoundaries();
+    let boundingBox = document.createElement('div');
+    boundingBox.id = 'caretBoundingBox';
+    document.body.appendChild(boundingBox);
+
+    let box_left = `${editorRect.left}px`;
+    let box_top = `${caretPos.top}px`;
+    boundingBox.style.width = `${editorRect.width}px`;
+    boundingBox.style.height = `${(caretPos.bottom - caretPos.top) + 2}px`;
+}
+
+function getClosestElementsToCare() {
+    // Caret positinn
+    const caretPos = getCaretPosition();
+    box = BoundingBox()
+
+    // Get the element above the caret
+    const elementAbove = document.elementFromPoint(0, caretPos.y - 10);
+    elementAbove.forEach(element => {
+        console.log("Element above caret:", element);
+    });
+
+    // Get the element below the caret
+    const elementBelow = document.elementFromPoint(0, caretPos.x, caretPos.y + 10);
+    console.log("Element below caret:", elementBelow);
+
+}
+// Always run getClosestElementsToCare
+document.addEventListener('DOMContentLoaded', function () {
+    getClosestElementsToCare();
+});
+
+// Additionally, run it on any potential caret movement
+document.querySelector('.text-editor-element').addEventListener('keyup', getClosestElementsToCare);
+document.querySelector('.text-editor-element').addEventListener('click', getClosestElementsToCare);
+document.querySelector('.text-editor-element').addEventListener('mouseup', getClosestElementsToCare);
+
+
 
 // Function to show the popup
 function showPopup() {
@@ -73,6 +150,8 @@ function showPopup() {
         // Calculate the position relative to the editor
         let pop_up_boundary_left = caretPos.x;
         let pop_up_boundary_top = caretPos.y;
+
+        const elementAtCaret = document.elementFromPoint(caretPos.x, caretPos.y);
 
         // Get the popup dimensions
         const popupRect = popup.getBoundingClientRect();
@@ -179,3 +258,20 @@ document.getElementById('promptForm').addEventListener('submit', function (e) {
             // TODO: Handle the error (e.g., display an error message to the user)
         });
 });
+
+
+// Move the User written text when the menu pops us 
+function adjustTextEditorMargin() {
+    const textDiv = document.getElementById('text-editor-element_id');
+    const chatPopup = document.querySelector('.chat-popup');
+
+    // Check if the chat popup exists and is currently displayed
+    if (chatPopup.style.display === 'block') {
+        textDiv.style.marginTop = '100px';
+    } else {
+        textDiv.style.marginTop = '0px';
+    }
+}
+
+// Call the function initially to set the correct margin
+adjustTextEditorMargin();

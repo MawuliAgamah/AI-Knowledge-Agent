@@ -81,6 +81,8 @@
 
 
 
+
+
 /* --------- Layout --------- */
 .layout-container {
   display: flex;
@@ -117,16 +119,49 @@
 
 .content-container{
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   justify-content: center;
-  margin-top: 50px;
-  margin-left: 250px;
-  margin-right: 250px;
+  margin-top: 0px;
+  margin-right: 200px;
+
 }
 
-/* --------- Header --------- */
+
+/* --------- Side bar  --------- */
 
 
+.sidebar_container{
+  /*background-color: hsla(0, 0%, 100%, 0.85);*/
+  width: 250px;
+  margin-left: 5px;
+  margin-right: 50px;
+  height: 100vh;
+  border-color: hsl(var(--muted-foreground) / .15); 
+  padding-left: 30px;
+}
+
+.sidebar-buttons-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  height: 50%;
+}
+
+.material-symbols-outlined {
+  font-size: 12px;
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 500,
+    'GRAD' 0,
+    'opsz' 0;
+  transform: scale(2);
+  margin-right: 20px;
+  transition: color 0.3s ease;
+}
+
+.material-symbols-outlined:hover {
+  color: #007bff; /* Change this to your preferred hover color */
+}
 
 
 /* --------- Editors --------- */
@@ -193,47 +228,33 @@
 
 
 
-
-.prompt-editor-wrapper .tiptap:last-child {
-  border: 1px solid black;
-  border-radius: 0.25rem;
-  background: white;
-  accent-color: black;
-  box-shadow: 0 0 1px 0px black inset, 0 0 1px 0px black;
-  margin-left: 20px;
-  margin-top: 20px;
-  margin-bottom: 10px;
-  height: 80px;
-  padding-left: 20px;
-  padding-top: 10px;
-
-}
-
-.text-editor-wrapper .tiptap:first-child{
+.text-editor-wrapper{
   justify-content: center;
-  
   border: 1px solid black;
-  border-radius: 0.25rem;
+  border-radius: 0;
   background: white;
-  accent-color: black;
-  box-shadow: 0 0 1px 0px black inset, 0 0 1px 0px black;
+  border-color: hsla(49, 10%, 95%, .85);
+  box-shadow: 0 0 1px 0px black , 0 0 1px 0px black, 0 4px 6px rgba(0, 0, 0, 0.1);
   margin-left: 10px;
   margin-top: 20px;
-
   padding: 20px;
-  width: 80%;
+  width: 100%;
   height: calc(100vh - 300px);
   max-height: calc(100vh - 30px); /* Adjust the 30px value as needed to account for margins */
   overflow-y: auto;
-  
-
-
 
 }
+
+.tiptap{
+  outline: none;
+}
+
+
 
 .editor-menu-wrapper{
   margin-left: 10px;
   margin-top: 20px;
+  width: 80%;
 } 
 
 
