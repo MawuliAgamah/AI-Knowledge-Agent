@@ -72,8 +72,6 @@ NEBULA_USER = 'root'
 NEBULA_PASSWORD = 'nebula'
 NEBULA_ADDRESS = '0.0.0.0'
 
-
-
 def get_nebula_client():
     """Function to connect to and get the nebula db client to allow you to write queries to the graph db """
     client = None

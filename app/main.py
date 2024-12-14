@@ -17,10 +17,23 @@ BASE_DIR = Path(__file__).resolve().parent
 
 
 
+
 # initialise the fast api application
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=BASE_DIR/'static'), name="static")
+# Mount the node_modules directory
+# The mount operation is failing because the directory path is incorrect.
+# The '@tiptap/core' is a package, not a directory. We need to mount the entire '@tiptap' directory.
+# Also, it's better to use a more specific name for clarity.
 
+app.mount("/tiptap", StaticFiles(directory=BASE_DIR / 'tailwind/node_modules/@tiptap/'), name="tiptap")
+
+
+# If you need to serve other specific packages, add them like this:
+# app.mount("/other-package", StaticFiles(directory=BASE_DIR/'tailwind/node_modules/other-package'), name="other-package")
+
+# Consider using a bundler like webpack or rollup for production
+# This approach is more suitable for development
 
 app.add_middleware(GZipMiddleware)
 

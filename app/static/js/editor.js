@@ -1,5 +1,5 @@
 
-import { Editor, Node } from 'https://esm.sh/@tiptap/core'
+import { Editor } from 'https://esm.sh/@tiptap/core'
 import { StarterKit } from 'https://esm.sh/@tiptap/starter-kit'
 
 const actions = [
@@ -10,7 +10,7 @@ const actions = [
     { name: "clear marks", command: 'unsetAllMarks' },
     { name: "clear nodes", command: 'setParagraph' },
     { name: "paragraph", command: 'toggle' },
-    { name: "h1", command: 'toggleHeading', argument: { level: 1 } },
+    { name: "h1", command: 'toggle', argument: { level: 1 } },
     { name: "h2", command: 'toggleHeading', argument: { level: 2 } },
     { name: "h3", command: 'toggleHeading', argument: { level: 3 } },
     { name: "h4", command: 'toggleHeading)', argument: { level: 4 } },

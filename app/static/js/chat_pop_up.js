@@ -55,6 +55,7 @@ function getCaretPosition() {
 
 
 function drawBoundingBox() {
+
     const caretPos = getCaretPosition();
     const editorRect = getTextEditorBoundaries();
     let boundingBox = document.createElement('div');
