@@ -1,14 +1,7 @@
-[tool.poetry]
-name = "star"
+[project]
+name = "ai-module"
 version = "0.1.0"
-description = "AI document writing tool"
-authors = ["MawuliAgamah <64679996+MawuliAgamah@users.noreply.github.com>"]
+description = "Add your description here"
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.10"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires-python = ">=3.9"
+dependencies = []

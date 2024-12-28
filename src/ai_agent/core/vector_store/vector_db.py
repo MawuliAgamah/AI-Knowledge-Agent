@@ -1,12 +1,11 @@
 
 import sys
 
-from core.log import logger  
+from log import logger  
 
 
 
-
-import core.utils.chroma_utils as chroma_utils
+import utils.chroma_utils as chroma_utils
 from llama_index.vector_stores.chroma import ChromaVectorStore
 
 from llama_index.core import (

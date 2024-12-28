@@ -7,8 +7,7 @@ from dotenv import load_dotenv, find_dotenv
 from pathlib import Path
 
 
-from core.log import logger
-
+from log import logger
 
 
 import chromadb
@@ -85,14 +84,14 @@ def get_chroma_client():
     """
     Function which creates or gets the Chroma DB from disk
     """
-    if os.path.exists('/Users/mawuliagamah/gitprojects/STAR/db/chroma/chroma.sqlite3'):
+    if os.path.exists('/Users/mawuliagamah/gitprojects/ai-module/db/chroma/chroma.sqlite3'):
         print("DB already exists") 
-        client = chromadb.PersistentClient(path='/Users/mawuliagamah/gitprojects/STAR/db/chroma')
+        client = chromadb.PersistentClient(path='/Users/mawuliagamah/gitprojects/ai-module/db/chroma')
 
     else:
         print("Making new client") 
         client = chromadb.PersistentClient(
-        path='/Users/mawuliagamah/gitprojects/STAR/db/chroma',
+        path='/Users/mawuliagamah/gitprojects/ai-module/db/chroma',
         settings=Settings(),
         tenant=DEFAULT_TENANT,
         database=DEFAULT_DATABASE,

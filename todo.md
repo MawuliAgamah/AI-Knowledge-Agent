@@ -95,7 +95,6 @@ How do we get our prompts from markdown into langchains prompt template?
 
 
 # Thoughts and Ideas : 
-
 - ** Markdown as structure ** 
      We want our documents to have structure. Should we get the LLM to 
      rewrite the document, keeping it as is , but adding structure VIA markdown?

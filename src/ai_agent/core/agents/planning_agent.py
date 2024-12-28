@@ -1,20 +1,25 @@
+
+
+import os
+from langchain.chat_models import ChatOpenAI
+
+
 class TaskPlanner:
-    
+
     """
     Takes query and breaks it down into sub queries 
-    
-    
+
+
     """
+
     def __init__(self):
         self.name = 'Planner'
-
 
     def step_back(self):
         """Implements step back prompting """
 
-
     def decompose_task(self):
-        from core.prompts.prompt import  UserPrompt
+        from core.prompts.prompt import UserPrompt
         from openai import OpenAI
         import json
 
@@ -62,29 +67,27 @@ class TaskPlanner:
             ]
         }
 
-        client = OpenAI(api_key = 'sk-proj-I87WN2uvwnxuyV0AECrhT3BlbkFJPGP9mlimlM7NDpQITH6b')
+        client = OpenAI(
+            api_key='sk-proj-I87WN2uvwnxuyV0AECrhT3BlbkFJPGP9mlimlM7NDpQITH6b')
 
         chat_completion = client.chat.completions.create(
-                model="gpt-3.5-turbo-1106",
-                response_format={"type":"json_object"},
-                messages=[
-                    {"role":"system","content":"Provide output in valid JSON. The data schema should in this format: " +json.dumps(example_json)},
-                    {"role":"user","content":prompt_template}
-                ]
-            )
-        
+            model="gpt-3.5-turbo-1106",
+            response_format={"type": "json_object"},
+            messages=[
+                {"role": "system", "content": "Provide output in valid JSON. The data schema should in this format: " +
+                    json.dumps(example_json)},
+                {"role": "user", "content": prompt_template}
+            ]
+        )
+
         finish_reason = chat_completion.choices[0].finish_reason
         data = chat_completion.choices[0].message.content
         output = json.loads(data)
         return output
 
-import os 
-from langchain.chat_models import ChatOpenAI
-
-
 
 class Agent():
-    def __init__(self,role,llm):
+    def __init__(self, role, llm):
         self.role = role
         self.llm = llm
         self.key = os.environ.get('OPENAI_API_KEY')
