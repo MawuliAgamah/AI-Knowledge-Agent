@@ -9,6 +9,10 @@
   - Human-in-the-loop interface
 
 ## Core Features (In Progress)
+
+- [] Architecture
+  -[] dockerise applicaiton 
+
 - [ ] Database Pipeline
   - [x] Base pipeline implementation
   - [x] Database code centralization

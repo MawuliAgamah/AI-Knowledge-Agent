@@ -1,12 +1,8 @@
-import sys
-if 1 == 1:
-    from pathlib import Path
-    sys.path.append(str(Path(__file__).resolve().parent.parent))
-
-from output_formats import ExecuteTaskFormat
-from output_formats import ReviewTask
-from langchain.prompts import PromptTemplate
-from output_formats import (
+from log import logger
+from agents.output_formats import ExecuteTaskFormat
+from agents.output_formats import ReviewTask
+from langchain_core.prompts import PromptTemplate
+from agents.output_formats import (
     Task,
     TaskOutputFormat,
     Thought,
@@ -15,6 +11,7 @@ from output_formats import (
     interpretationFormat,
     ExecuteTaskFormat
 )
+
 from prompts.user_prompt import task as OBJECTIVE
 from concurrent.futures import ThreadPoolExecutor
 from prompts.agent.task_execution import task_execution_prompt
@@ -39,6 +36,9 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain.chains.llm import LLMChain
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+import sys
+sys.path.append("..")
+
 
 # Import all prompts used throughout application
 
