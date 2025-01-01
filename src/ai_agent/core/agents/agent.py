@@ -1,32 +1,12 @@
-import sys
-if 1 == 1:
-    from pathlib import Path
-    sys.path.append(str(Path(__file__).resolve().parent.parent))
+"""To add
 
-from output_formats import ExecuteTaskFormat
-from output_formats import ReviewTask
-from langchain.prompts import PromptTemplate
-from output_formats import (
-    Task,
-    TaskOutputFormat,
-    Thought,
-    Thoughts,
-    Interpretation,
-    interpretationFormat,
-    ExecuteTaskFormat
-)
-from prompts.user_prompt import task as OBJECTIVE
-from concurrent.futures import ThreadPoolExecutor
-from prompts.agent.task_execution import task_execution_prompt
-from prompts.agent.task_review import task_review_prompt
-from prompts.agent.task_generation import task_generation_prompt
-from prompts.agent.input_interpretation import interpretation_prompt
-from config.config import config
-from prompts.prompt import (
-    Thought_prompt,
-    Prompt_message,
-    task_creating_prompt,
-)
+
+
+"""
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain.chains.llm import LLMChain
+from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.messages import (
     AIMessage,
     BaseMessage,
@@ -35,10 +15,39 @@ from langchain_core.messages import (
     SystemMessage,
     ToolMessage
 )
-from langchain_core.output_parsers import JsonOutputParser
-from langchain.chains.llm import LLMChain
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
+
+
+import sys
+if 1 == 1:
+    from pathlib import Path
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+from prompts.prompt import (
+    Thought_prompt,
+    Prompt_message,
+    task_creating_prompt,
+)
+from config.config import config
+from prompts.agent.input_interpretation import interpretation_prompt
+from prompts.agent.task_generation import task_generation_prompt
+from prompts.agent.task_review import task_review_prompt
+from prompts.agent.task_execution import task_execution_prompt
+from concurrent.futures import ThreadPoolExecutor
+from prompts.user_prompt import task as OBJECTIVE
+from .output_formats import (
+    Task,
+    TaskOutputFormat,
+    Thought,
+    Thoughts,
+    Interpretation,
+    interpretationFormat,
+    ExecuteTaskFormat
+)
+from langchain.prompts import PromptTemplate
+from output_formats import ReviewTask
+from output_formats import ExecuteTaskFormat
+import sys
+
 
 # Import all prompts used throughout application
 
@@ -69,8 +78,11 @@ MODEL = "gpt-3.5-turbo"
 #            raise ValueError(f"Tool '{tool_selected}' is not available.")
 
 def llm():
+    """LLM
+    """
     llm = ChatOpenAI(
-        model=MODEL, api_key=config['api_key'], temperature=1.5, max_tokens=500)
+        model=MODEL, api_key=config['api_key'],
+        temperature=1.5, max_tokens=500)
     return llm
 
 
@@ -94,7 +106,9 @@ def interpret_task(task):
     # Create a chain which takes in the prompt, the model and output parser
     thought_chain = interpretation_prompt | llm() | output_parser
     task_interpretation = thought_chain.invoke(
-        {"prompt": task, "format_instructions": output_parser.get_format_instructions()})
+        {"prompt": task,
+         "format_instructions": output_parser.get_format_instructions()
+         })
 
     thoughts = list()
     for key, value in task_interpretation.items():
