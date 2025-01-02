@@ -4,7 +4,6 @@
 Author : Mawuli Agamah
 Version : 0.1.0
 License:
-
 """
 import os
 import chromadb
@@ -86,19 +85,19 @@ def query_vector_db(query, collection):
     return final_retrival
 
 
-def get_chroma_client():
+def get_chroma_client(path_to_vectordb):
     """
     Function which creates or gets the Chroma DB from disk
     """
-    if os.path.exists('/Users/mawuliagamah/utilities/chroma/chroma.sqlite3'):
+    if os.path.exists(f'{path_to_vectordb}.sqlite3'):
         print("DB already exists")
         client = chromadb.PersistentClient(
-            path='/Users/mawuliagamah/utilities/chroma')
+            path=path_to_vectordb)
 
     else:
         print("Making new client")
         client = chromadb.PersistentClient(
-            path='/Users/mawuliagamah/utilities/chroma',
+            path=path_to_vectordb,
             settings=Settings(),
             tenant=DEFAULT_TENANT,
             database=DEFAULT_DATABASE,
