@@ -8,7 +8,11 @@ Script which handles everything related to processing to be embedded.
 
 # from tqdm import tqdm
 from langchain.chains import MapReduceDocumentsChain, ReduceDocumentsChain
-from langchain_community.document_loaders import Docx2txtLoader
+from langchain_community.document_loaders import (
+    Docx2txtLoader,
+    UnstructuredMarkdownLoader
+)
+
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.prompts import PromptTemplate
@@ -18,19 +22,19 @@ import nltk
 from nltk.stem import *
 
 
-from config import config
+# from .config import config
 # Import Langchain
 
 from gensim.parsing.preprocessing import remove_stopwords
 
-from .agents.document_agent import DocumentAgent
+from agents.document_agent import DocumentAgent
 
 from prompts.document_prompts import (
     map_template,
     reduce_template
 )
 
-from .log import logger
+from log import logger
 
 
 class Document:
@@ -97,6 +101,10 @@ class Document:
             return self.contents['document'][0].page_content
 
     def update(self, contents, payload, chunk_id=None,):
+        """
+        method to update a documents contents
+
+        """
         if contents == "page_content":
             self.contents['document'][0].page_content = payload
             return self
@@ -110,7 +118,7 @@ class Document:
             self.contents['summary'] = payload
             return self
         else:
-            return ValueError('No implementation')
+            return ValueError('Not yet implemented')
 
 
 # Define all imports which are used by the class below
@@ -153,20 +161,25 @@ class DocumentBuilder:
             return document_object
         # Markdown document
         elif path_to_document.endswith('.md'):
-            print("document is mardown")
-            print(path_to_document)
+            loader = UnstructuredMarkdownLoader(path_to_document)
+            doc = loader.load()
+            document_object.contents['document'] = doc
             logger.info("Markdown Document Loaded")
+            document_object.contents['metadata']['document_type'] = 'md'
+            return document_object
 
     def pre_process(self, document_object):
         """
+        ...
         """
         # Get page contents from the document object
         page_contents = document_object.get_contents(contents="page_contents")
         page_contents = page_contents.lower()  # Make page contents lower case
-        stemmer = PorterStemmer()  # Create stemmer
+        # stemmer = PorterStemmer()  # Create stemmer
         lemmertizer = WordNetLemmatizer()  # instantiate lemmertizer
         page_contents = ' '.join(lemmertizer.lemmatize(
-            token) for token in nltk.word_tokenize(page_contents))  # Lemmertize
+            # Lemmertize
+            token) for token in nltk.word_tokenize(page_contents))
         page_contents = remove_stopwords(page_contents)  # remove stop words
         # Update the page contents of the documnet
         document_object = document_object.update(
@@ -187,7 +200,8 @@ class DocumentBuilder:
         document_object : object
         """
         docoument = document_object.get_contents(
-            "document")  # Get the contents of the document contents from the document. This is a langchain document object.
+            # Get the contents of the document contents from the document. This is a langchain document object.
+            "document")
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000, chunk_overlap=5)
         chunks = text_splitter.split_documents(docoument)
@@ -197,8 +211,7 @@ class DocumentBuilder:
 
     def add_chunks(self, document_object, llm):
         """
-        chunk the 
-
+        ...
         """
 
         chunks = document_object.get_contents("chunked_document")
@@ -223,11 +236,17 @@ class DocumentBuilder:
                     "questions": metadata['Questions']
                 }}
 
-            document_object = document_object.update(
-                contents="chunks", chunk_id=f"chunk_{idx}", payload=chunk_store)
+            document_object = (
+                document_object
+                .update(
+                    contents="chunks",
+                    chunk_id=f"chunk_{idx}",
+                    payload=chunk_store
+                )
+            )
         return document_object
 
-    def inject_summary(self, document_object, llm):
+    def generate_summary(self, document_object, llm):
         """
         Generate a summary of the document using language model.
 
@@ -244,7 +263,7 @@ class DocumentBuilder:
         The document object.
         """
         # We should encapsulate all of this into the LLM, so that its the llm that does the map reduce.
-        # Create document summary via langchains map reduce -        document_summary = llm.map_reduce(map_prompt,reduce_prompt)
+        # Create document summary via langchains map reduce - document_summary = llm.map_reduce(map_prompt,reduce_prompt)
         map_prompt = PromptTemplate.from_template(map_template)
         reduce_prompt = PromptTemplate.from_template(reduce_template)
 
@@ -254,10 +273,14 @@ class DocumentBuilder:
             llm_chain=reduce_chain, document_variable_name="doc_summaries")
         # logger.info(f"Combine document chain : {combine_documents_chain}")
         reduce_documents_chain = ReduceDocumentsChain(
-            combine_documents_chain=combine_documents_chain, collapse_documents_chain=combine_documents_chain)
+            combine_documents_chain=combine_documents_chain,
+            collapse_documents_chain=combine_documents_chain
+        )
         # logger.info(f"Combine document chain : {reduce_documents_chain}")
         map_reduce_chain = MapReduceDocumentsChain(
-            llm_chain=map_chain, document_variable_name="content", reduce_documents_chain=reduce_documents_chain)
+            llm_chain=map_chain, document_variable_name="content",
+            reduce_documents_chain=reduce_documents_chain
+        )
         logger.info(f"{map_reduce_chain}")
         # We use the chunked document to feed into langchain
         chunked_dcoument = document_object.get_contents("chunked_document")
@@ -269,15 +292,19 @@ class DocumentBuilder:
 
         return document_object
 
-    def inject_meta_data(self, document_object_llm):
+    def generate_meta_data(self, document_object_llm):
+        """
+
+        """
         pass
 
 
 class DocumentPipeline:
     """
     Class that serves as a higher level orchestrator.
-    Uses the document builder to perform a sequence of operations on a document object
-    in order to construct a document for insertion into a  vector database.
+    Uses the document builder to perform a sequence of operations
+    on a document objec to construct a document for insertion
+    into a  vector database.
     attr
     ----
     document_builder : object
@@ -292,8 +319,9 @@ class DocumentPipeline:
 
     def build_document(self, path_to_document):
         """
-        Sequence of operations to build a full document given
-        the path to the document on file.
+        Sequence of operations to build 
+        a full document given the path to
+        the document.
 
         params
         ------
@@ -309,7 +337,7 @@ class DocumentPipeline:
         document = self.document_builder.chunk_document(
             document_object=document)
         # Create the document summary using a language model
-        document = self.document_builder.inject_summary(
+        document = self.document_builder.generate_summary(
             document_object=document, llm=self.llm)
         # Create the document summary using a language model
         document = self.document_builder.add_chunks(

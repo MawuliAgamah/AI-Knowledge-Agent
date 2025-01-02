@@ -20,7 +20,7 @@ def get_client(path):
     """
     Create or get the database client
     """
-    if os.path.exists(path):
+    if os.path.exists(f'{path}/chroma.sqlite3'):
         print("DB already exists")
         client = chromadb.PersistentClient(
 
@@ -29,7 +29,6 @@ def get_client(path):
             tenant=DEFAULT_TENANT,
             database=DEFAULT_DATABASE,
         )
-
     else:
         print("Making new client")
         client = chromadb.PersistentClient(
@@ -89,7 +88,7 @@ def get_chroma_client(path_to_vectordb):
     """
     Function which creates or gets the Chroma DB from disk
     """
-    if os.path.exists(f'{path_to_vectordb}.sqlite3'):
+    if os.path.exists(f'{path_to_vectordb}/chroma.sqlite3'):
         print("DB already exists")
         client = chromadb.PersistentClient(
             path=path_to_vectordb)
