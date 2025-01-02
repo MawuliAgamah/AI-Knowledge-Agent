@@ -1,20 +1,17 @@
-"""
-
-
-Author : Mawuli Agamah
-Version : 0.1.0
-License:
-
-"""
+from chromadb import Client as ChromaClient
+from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 import os
+
+import os
+from dotenv import load_dotenv, find_dotenv
+from pathlib import Path
+
+
+from log import logger
+
+
 import chromadb
 from chromadb.config import DEFAULT_TENANT, DEFAULT_DATABASE, Settings
-
-# from pathlib import Path
-# from chromadb import Client as ChromaClient
-# from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
-# from dotenv import load_dotenv, find_dotenv
-# from ..log import logger
 
 
 def get_client(path):

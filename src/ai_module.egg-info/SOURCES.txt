@@ -36,6 +36,7 @@ src/ai_agent/core/prompts/agent/task_execution.py
 src/ai_agent/core/prompts/agent/task_generation.py
 src/ai_agent/core/prompts/agent/task_review.py
 src/ai_agent/core/templates/examples.py
+src/ai_agent/core/utils/__init__.py
 src/ai_agent/core/utils/chroma_utils.py
 src/ai_agent/core/utils/document_utils.py
 src/ai_agent/core/vector_store/__init__.py
