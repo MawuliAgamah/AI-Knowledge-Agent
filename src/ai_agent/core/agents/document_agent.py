@@ -1,51 +1,56 @@
-from langchain_core.pydantic_v1 import (
-    BaseModel,
-    Field
-)
-import os
+"""To add .."""
+from typing import List
+
+# from langchain_core.pydantic_v1 import (
+#    pydantic_v1,
+#    Field
+# )
+
 from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from typing import (
-    List,
-    Optional
-)
-from langchain_core.output_parsers import JsonOutputParser
+from langchain_core import prompts, output_parsers, pydantic_v1
 from langchain.chains.llm import LLMChain
-from log import logger
-import sys
-sys.path.append("..")
+
+from ..log import logger
 
 
-def planner_agent(prompt_template, output_format):
-    import json
-    from openai import OpenAI
-    import json
+# import sys
+# sys.path.append("..")
 
-    client = OpenAI(
-        api_key='sk-proj-I87WN2uvwnxuyV0AECrhT3BlbkFJPGP9mlimlM7NDpQITH6b')
+# import os
 
-    chat_completion = client.chat.completions.create(
-        model="gpt-3.5-turbo-1106",
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content":
-             """You are a part of a team of language models. 
-                   Your role is this team is a leader, meaning you give the other models instructions. 
-                   You must Provide your output in valid JSON. 
-                   The data schema should in this format: """ +
-             json.dumps(output_format)},
+# def planner_agent(prompt_template, output_format):
+#    """
+#    ...
+#    """
+#    import json
+#    from openai import OpenAI
+#
+#    client = OpenAI(
+#        api_key='sk-proj-I87WN2uvwnxuyV0AECrhT3BlbkFJPGP9mlimlM7NDpQITH6b')
+#
+#    chat_completion = client.chat.completions.create(
+#        model="gpt-3.5-turbo-1106",
+#        response_format={"type": "json_object"},
+#        messages=[
+#            {"role": "system", "content":
+#             """You are a part of a team of language models.
+#                   Your role is this team is a leader,
+#                   meaning you give the other models instructions.
+#                   You must Provide your output in valid JSON.
+#                  The data schema should in this format: """ +
+#             json.dumps(output_format)},
+#
+#            {"role": "user", "content": prompt_template}
+#        ]
+#    )
 
-            {"role": "user", "content": prompt_template}
-        ]
-    )
-
-    finish_reason = chat_completion.choices[0].finish_reason
-    data = chat_completion.choices[0].message.content
-    output = json.loads(data)
-    return output
+#     finish_reason = chat_completion.choices[0].finish_reason
+#    data = chat_completion.choices[0].message.content
+#    output = json.loads(data)
+#    return output
 
 
-meta_data_prompt = ChatPromptTemplate.from_messages([
+meta_data_prompt = prompts.ChatPromptTemplate.from_messages([
     ("system", """The following is a part of a larger document.\n
         Extract the keywords, Tags and Questions on the chunk.\n
         Tags must start with a '#' and no list must be longer than 5 words.
@@ -55,16 +60,21 @@ meta_data_prompt = ChatPromptTemplate.from_messages([
 
 
 # Define your desired data structure.
-class MetaData(BaseModel):
+class MetaData(pydantic_v1.BaseModel):
     """
     ...
     """
-    Keywords: list[str] = Field(
-        description="List of keywords related to the document. The maximum is 5 items.")
-    Tags: list[str] = Field(
-        description="List of tags related to the document, The maximum is 5 items.")
-    Questions: list[str] = Field(
-        description="List of questions which can be asked to query the document,The maximum is 5 items.")
+    Keywords: List[str] = pydantic_v1.Field(
+        description="""List of keywords related to the document.
+                       The maximum is 5 items.""")
+
+    Tags: List[str] = pydantic_v1.Field(
+        description="""List of tags related to the document,
+                        The maximum is 5 items.""")
+    Questions: List[str] = pydantic_v1.Field(
+        description="""List of questions which can be
+                       asked to query the document,The maximum is 5 items.
+                        """)
 
 
 class DocumentAgent:
@@ -83,12 +93,10 @@ class DocumentAgent:
         logger.info("Document Agent Initialised")
         self.llm = llm
 
-    def map_reduce(self, map_prompt, reduce_prompt):
-        """
-        ...
-        """
-        pass
-
+    # def map_reduce(self, map_prompt, reduce_prompt):
+    #    """
+    #    ...
+    #    """
         # return map_reduce_output
 
     def llm_chain(self, prompt):
@@ -105,7 +113,7 @@ class DocumentAgent:
         """
         ..
         """
-        parser = JsonOutputParser(pydantic_object=MetaData)
+        parser = output_parsers.JsonOutputParser(pydantic_object=MetaData)
         llm = ChatOpenAI(model=self.model, api_key=self.config['api_key'])
         chain = meta_data_prompt | llm | parser
         output = chain.invoke(
