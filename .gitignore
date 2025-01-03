@@ -3,7 +3,10 @@ db
 .git
 .DS_Store
 .vscode
-.venv
+.venv/
+
+docs/
+
 
 **/.DS_Store
 **/.env
@@ -13,3 +16,5 @@ db
 *.egg-info/
 
 opensource/
+
+developer.md

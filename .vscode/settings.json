@@ -1,3 +1,5 @@
 {
-    "python.analysis.extraPaths": ["/Users/mawuliagamah/gitprojects/ai_module/src"]
+    "python.analysis.extraPaths": [
+        "/Users/mawuliagamah/gitprojects/ai_module/src"
+    ]
 }

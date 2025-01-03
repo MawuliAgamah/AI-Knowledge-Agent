@@ -1,17 +1,74 @@
+"""
+
+
+Author : Mawuli Agamah
+Version : 0.1.0
+License:
+
+"""
+
+from langchain_openai import ChatOpenAI
+
 from .utils.chroma_utils import get_chroma_client
+from .document.document import (
+    DocumentPipeline,
+    DocumentBuilder
+)
+
+from .agents.document_agent import DocumentAgent
+from .config import config
 
 
-class Agent:
+class AgentModule:
+    """
+    ...
+
+    """
 
     def __init__(self):
-        client = None
+        self.client = None
+        self.docParser = None
 
-    def set_up_chroma():
-        client = get_chroma_client()
+    def set_up(self, path_to_vectordb, rag='vector'):
+        """
+        ...
 
-    def embed_document(self, document):
-        client = get_chroma_client()
-        print(client)
-        # Can we get this to run in parallel?
-        # okayyy
-        print(document)
+        """
+        if rag == 'vector':
+            # ----------------------------------
+            # initialise vector database
+            # ----------------------------------
+            self.client = get_chroma_client(path_to_vectordb=path_to_vectordb)
+
+            # ----------------------------------
+            # initialise document agent
+            # ----------------------------------
+            document_agent = DocumentAgent(
+                llm=ChatOpenAI,
+                config=config
+            )
+
+            # ----------------------------------
+            # initialise builder
+            # ----------------------------------
+            document_builder = DocumentBuilder()
+            self.docParser = (
+                DocumentPipeline(
+                    document_builder=document_builder,
+                    llm=document_agent
+                )
+            )
+            return self
+        else:
+            return ValueError('Only Vector DB implemented')
+
+    def parse_document(self, document):
+        """
+
+        ...
+
+        """
+        pipeline = DocumentPipeline()
+        for doc in document:
+            pipeline.build_document(path_to_document=document)
+            # Embed document here

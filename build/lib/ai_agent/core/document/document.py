@@ -1,33 +1,56 @@
-
-""""
-Script which handles everything related to processing and getting document ready to be embedded 
-
-
 """
-import os
-import sys
-import glob
+Script which handles everything related to processing to be embedded.
+"""
+# import os
+# import sys
+# import glob
 
-from prompts.document_prompts import map_template, reduce_template
+
+# from tqdm import tqdm
 from langchain.chains import MapReduceDocumentsChain, ReduceDocumentsChain
-from tqdm import tqdm
+from langchain_community.document_loaders import Docx2txtLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.prompts import PromptTemplate
 
-from log import logger
 
-from agents.document_agent import DocumentAgent
-from config import config
-# Import Langchain
-from langchain_community.document_loaders import Docx2txtLoader
-from gensim.parsing.preprocessing import remove_stopwords
 import nltk
 from nltk.stem import *
 
 
+# from .config import config
+# Import Langchain
+
+from gensim.parsing.preprocessing import remove_stopwords
+
+from .agents.document_agent import DocumentAgent
+
+from prompts.document_prompts import (
+    map_template,
+    reduce_template
+)
+
+from .log import logger
+
+
 class Document:
-    """The Document Object Class"""
+    """The Document Object Class that represents a document and
+    its associated metadata.
+
+    Class serves as a container for document content, metadata, and processing states.
+    It maintains information about the document's path, content, chunks, summaries, and
+    other metadata in a structured format.
+
+    Attributes:
+        contents (dict): A dictionary containing all document-related information including:
+            - id: Unique identifier for the document
+            - path: File path to the document
+            - document: The loaded document object
+            - chunked_document: Document split into smaller chunks
+            - chunks: Dictionary of processed document chunks with metadata
+            - summary: Document summary
+            - metadata: Document metadata including title, topic, filename, etc.
+    """
 
     def __init__(self, path):
         self.contents = {
@@ -113,23 +136,29 @@ class DocumentBuilder:
         return document
 
     def load(self, document_object):
-        """Load document into langchains data loader. Currently only handles Word Documents, Will deal with other cases """
+        """Loads a document into the langchain data loader.
 
+        Parameters:
+            document_object (Document): The Document object to load
+
+        Returns:
+            Document: The Document object with loaded content
+        """
         path_to_document = document_object.get_contents('path')
-
-        loader = Docx2txtLoader(path_to_document)
-        doc = loader.load()
-        document_object.contents['document'] = doc
-
-        logger.info("Document Loaded")
-        return document_object
+        if path_to_document.endswith('.docx'):
+            loader = Docx2txtLoader(path_to_document)
+            doc = loader.load()
+            document_object.contents['document'] = doc
+            logger.info("Word Document Loaded")
+            return document_object
+        # Markdown document
+        elif path_to_document.endswith('.md'):
+            print("document is mardown")
+            print(path_to_document)
+            logger.info("Markdown Document Loaded")
 
     def pre_process(self, document_object):
         """
-
-
-
-
         """
         # Get page contents from the document object
         page_contents = document_object.get_contents(contents="page_contents")
@@ -137,7 +166,8 @@ class DocumentBuilder:
         stemmer = PorterStemmer()  # Create stemmer
         lemmertizer = WordNetLemmatizer()  # instantiate lemmertizer
         page_contents = ' '.join(lemmertizer.lemmatize(
-            token) for token in nltk.word_tokenize(page_contents))  # Lemmertize
+            # Lemmertize
+            token) for token in nltk.word_tokenize(page_contents))
         page_contents = remove_stopwords(page_contents)  # remove stop words
         # Update the page contents of the documnet
         document_object = document_object.update(
@@ -158,7 +188,8 @@ class DocumentBuilder:
         document_object : object
         """
         docoument = document_object.get_contents(
-            "document")  # Get the contents of the document contents from the document. This is a langchain document object.
+            # Get the contents of the document contents from the document. This is a langchain document object.
+            "document")
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000, chunk_overlap=5)
         chunks = text_splitter.split_documents(docoument)
@@ -167,6 +198,10 @@ class DocumentBuilder:
         return document_object
 
     def add_chunks(self, document_object, llm):
+        """
+        chunk the 
+
+        """
 
         chunks = document_object.get_contents("chunked_document")
         document_summary = document_object.get_contents("summary")

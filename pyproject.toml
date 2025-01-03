@@ -1,7 +1,18 @@
 [project]
-name = "ai-module"
+name = "aimodule"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.9"
-dependencies = []
+dependencies = [
+'langchain_openai',
+'langchain-community',
+'langchain',
+'gensim',
+'nltk',
+'unstructured[md]',
+'chromadb',
+'onnxruntime==1.15.0'
+]
+
+
