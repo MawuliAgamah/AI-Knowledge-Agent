@@ -1,9 +1,26 @@
+"""Script to manage interaction with vector database (chroma db)
 
-import dotenv
+Database class : 
+
+
+
+
+Database handler:
+
+
+
+Database Pipeline:
+
+
+
+
+"""
+# import dotenv
+# import os
+# import sys
+from dataclasses import dataclass
 import chromadb.utils.embedding_functions as embedding_functions
 from dotenv import load_dotenv
-import os
-import sys
 
 from log import logger
 
@@ -17,9 +34,16 @@ from llama_index.core import (
 )
 
 
-class DataBase:
-    """"""
+@dataclass
+class DataBaseConfig:
+    """Confiuration class for the database"""
+    def __init__(self):
+        self.client = None
+        self.path_to_chroma_db = None
 
+
+class DataBase:
+    """ To add """
     def __init__(self):
         self.client = None
         self.collections = {}
@@ -37,8 +61,9 @@ openai_ef = embedding_functions.OpenAIEmbeddingFunction(
 
 
 class DataBaseHandler:
-    """
-    Class which handle all interactions with the database
+    """Class which handle all interactions with the database
+    
+    
     """
 
     def __init__(self, database, client):
@@ -58,6 +83,9 @@ class DataBaseHandler:
         return collection
 
     def add_document(self, document_object, collection, doc_type):
+        """
+            document_object : Document() class generated in document.py
+        """
 
         collection = self.get_collection(collection)
         if doc_type == "docx":
@@ -111,17 +139,29 @@ class DataBaseHandler:
         response = query_engine.query(query)
         return response
 
+# self.client = (chroma_utils.get_client(path='/Users/mawuliagamah/gitprojects/STAR/db/chroma/chroma.sqlite3'))
+
 
 class DataBasePipeline:
-    """Database pipeline creates a simple interface to interact with vector store and retreival"""
+    """Database pipeline creates a simple interface to interact with
+       vector-store and retreival.
 
-    def __init__(self, reset_client=True):
-        database = DataBase()
-        client = chroma_utils.get_client(
-            path='/Users/mawuliagamah/gitprojects/STAR/db/chroma/chroma.sqlite3')
+
+       methods:
+        add_document()
+
+        query_data_base()
+
+
+    """
+
+    def __init__(self, client, reset_client=True):
+        self.database = DataBase()
+        self.client = client
         self.db_handler = DataBaseHandler(database=database, client=client)
-        if reset_client == True:
-            client.reset()  # This empties the client, use in development so we can start with new data
+        
+        if reset_client:
+            self.client.reset()  # This empties the database 
             self.client = client
         else:
             self.client = client
@@ -142,3 +182,5 @@ class DataBasePipeline:
 
     # def document(self,query):
     #    return output
+
+

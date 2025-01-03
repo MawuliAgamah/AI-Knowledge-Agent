@@ -3,12 +3,12 @@ Author : Mawuli Agamah
 Version : 0.1.0
 License:
 """
-
-from typing import List, Optional, Dict, Any
+from dataclasses import dataclass
+from typing import List, Optional, Any
 from pathlib import Path
 from ai_agent.core.utils import chroma_utils
 from langchain_openai import ChatOpenAI
-from utils.chroma_utils import (get_client, add_item_to_chroma_db)
+# from utils.chroma_utils import (get_client, add_item_to_chroma_db)
 
 from document.document import (
     DocumentPipeline,
@@ -27,13 +27,11 @@ from agents.document_agent import DocumentAgent
 from config.config import config
 
 
-from dataclasses import dataclass
-
-
 @dataclass
-class AgentConfig:
+class Config:
     """Configuration class for AgentModule"""
-    vector_db_path: Path = "/Users/mawuliagamah/utilities/chroma/chroma.sqlite3"
+    vector_db_path: str
+    chroma_client: Optional[Any]  # not sure what the chorma client is yet
     model_name: str = "gpt-3.5-turbo"
     rag_type: str = "vector"
     reset_db: bool = False
@@ -48,13 +46,13 @@ class AgentModule:
     client: Optional[Any]  # Type from chroma client
     parsed_documents: List[Any]  # Type from your document objects
 
-    def __init__(self, agent_config: AgentConfig):
+    def __init__(self, configuration: Config):
         self.client = None
         self.document_parser = None
         self.document_agent = None
         self.database = None
         self.parsed_documents = []
-        self.config = agent_config
+        self.config = configuration
 
         # initialise all components
         self._initialize_components()
@@ -74,7 +72,9 @@ class AgentModule:
         # ----------------------------------
         # 1. initialise vector database handler
         # ----------------------------------
-        self.database = DataBasePipeline(reset_client=True)
+        self.database = DataBasePipeline(reset_client=True,
+                                         client=self.config.chroma_client
+                                         )
         # ----------------------------------
         # 2.initialise document agent
         # ----------------------------------
@@ -111,9 +111,9 @@ class AgentModule:
 
     def embed_documents(self, collection):
         """Embed users documnets in vector db"""
-        collection = (chroma_utils
-                      .get_or_create_collection(
-                          client=self.client, colleciton_name=collection)
+        collection = (self.database
+                      .get_collection(
+                        client=self.client, colleciton_name=collection)
                       )
 
         for idx, item in enumerate(self.parsed_documents):
@@ -137,19 +137,23 @@ class AgentModule:
         return response
 
 
-def create_agent(vector_db_path: str,
-                 model_name: str = "gpt-3.5-turbo",
-                 rag_type: str = "vector",
-                 reset_db: bool = False
-                 ) -> AgentModule:
-    """Create an AI agent"""
-    agent_configuration = AgentConfig(
-        vector_db_path=Path(vector_db_path),
+def create_module(vector_db_path: str,
+                  collection: str,
+                  model_name: str = "gpt-3.5-turbo",
+                  rag_type: str = "vector",
+                  reset_db: bool = False,
+                  ) -> AgentModule:
+    """Set up the Agent"""
+    client = chroma_utils.get_client(path=vector_db_path) # grab client to work with chroma db
+    configuraton = Config(
+        vector_db_path=vector_db_path,
+        chroma_client=client,
         model_name=model_name,
+        collection=collection,
         rag_type=rag_type,
         reset_db=reset_db
     )
-    return AgentModule(agent_configuration)
+    return AgentModule(configuraton)
 
 
 def test_run(path_to_note):
@@ -157,9 +161,9 @@ def test_run(path_to_note):
     Testing
     """
 
-    agent = create_agent(
+    agent = create_module(
         vector_db_path="/Users/mawuliagamah/utilities/chroma/chroma.sqlite3",
-        collection = "obsidan_databse",
+        collection="obsidan_databse",
         model_name="gpt-3.5-turbo",
         reset_db=True
         )
@@ -168,9 +172,6 @@ def test_run(path_to_note):
         .embed_documents(collection="obsidan_databse")
 
     agent.query("What are my knowledge gaps in graph neural networks?")
-
-
-
 
     # agent = (
     #    agent
@@ -192,7 +193,5 @@ def test_run(path_to_note):
 
 
 if __name__ == "__main__":
-
     notes = ["""/Users/mawuliagamah/obsidian vaults/Software Company/Learning/Machine Learning/Graph Neural Networks.md"""]
-
     test_run(path_to_note=notes)

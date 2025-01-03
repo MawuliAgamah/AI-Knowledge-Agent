@@ -17,27 +17,28 @@ import chromadb.utils.embedding_functions as embedding_functions
 # from ..log import logger
 
 
-# def get_client(path):
-#    """Create or get the database client"""
-#    if os.path.exists(f'{path}/chroma.sqlite3'):
-#        print("DB already exists")
-#        client = chromadb.PersistentClient(
-#
-#            path=path,
-#            settings=Settings(allow_reset=True),
-#            tenant=DEFAULT_TENANT,
-#            database=DEFAULT_DATABASE,
-#        )
-#    else:
-#        print("Making new client")
-#            path=path,
-#            settings=Settings(allow_reset=True),
-#        client = chromadb.PersistentClient(
-#            tenant=DEFAULT_TENANT,
-#            database=DEFAULT_DATABASE,
-#        )
-#
-#    return client
+def get_client(path):
+    """
+    Create or get the database client
+    """
+    if os.path.exists(path):
+        print("DB already exists") 
+        client = chromadb.PersistentClient(
+        path=path,
+        settings= Settings(allow_reset=True),
+        tenant=DEFAULT_TENANT,
+        database=DEFAULT_DATABASE,
+        )
+    else:
+        print("Making new client") 
+        client = chromadb.PersistentClient(
+        path=path,
+        settings=Settings(allow_reset=True),
+        tenant=DEFAULT_TENANT,
+        database=DEFAULT_DATABASE,
+        )
+
+    return client
 
 
 def get_chroma_client(path_to_vectordb):
