@@ -17,12 +17,13 @@ from document.document import (
 
 # Handles everything related to interacting with the database
 
-from vector_store.vector_db import (
-    DataBaseHandler,
-    DataBase as VectorDb,
-    DataBasePipeline
-)
+# from vector_store.vector_db import (
+#    DataBase as VectorDb,
+#    DataBaseHandler,
+#    DataBasePipeline
+# )
 
+from vector_store.vector_db import initialise_vector_store
 from agents.document_agent import DocumentAgent
 from config.config import config
 
@@ -32,15 +33,17 @@ class Config:
     """Configuration class for AgentModule"""
     vector_db_path: str
     chroma_client: Optional[Any]  # not sure what the chorma client is yet
+    vector_store: Optional[Any]
     model_name: str = "gpt-3.5-turbo"
     rag_type: str = "vector"
     reset_db: bool = False
     collection: str = "base"
 
 
+
 class AgentModule:
     """Entry point to ai agent system"""
-    database: Optional[DataBasePipeline]
+    database: Optional[Any]
     document_agent: Optional[DocumentAgent]
     document_parser: Optional[DocumentPipeline]
     client: Optional[Any]  # Type from chroma client
@@ -70,11 +73,12 @@ class AgentModule:
     def _initialise_with_vector_rag(self) -> None:
         """Set up AI agent with vector based rag"""
         # ----------------------------------
-        # 1. initialise vector database handler
+        # 1. initialise vector
         # ----------------------------------
-        self.database = DataBasePipeline(reset_client=True,
-                                         client=self.config.chroma_client
-                                         )
+        #self.database = DataBasePipeline(reset_client=True,
+        #                                 client=self.config.chroma_client
+        #                                 )
+        self.database = self.config.vector_store
         # ----------------------------------
         # 2.initialise document agent
         # ----------------------------------
@@ -109,32 +113,22 @@ class AgentModule:
                 print(f"Error parsing document {doc_path}: {str(e)}")
         return self
 
-    def embed_documents(self, collection):
-        """Embed users documnets in vector db"""
-        collection = (self.database
-                      .get_collection(
-                        client=self.client, colleciton_name=collection)
-                      )
+    def embed(self, collection):
+        """Embed the parsed documents in vector db"""
+        for doc in self.parsed_documents:
+            self.database.add_document(document_object=doc,  # type: ignore
+                                       collection_name=self.config.collection,
+                                       doc_type='md')
+        return self
 
-        for idx, item in enumerate(self.parsed_documents):
-            self.database.add_document(document_object=item,  # type: ignore
-                                       collecton_name="word_documents",
-                                       doc_type="md"
-                                       )
-
-            chroma_utils.add_item_to_chroma_db(
-                collection=collection, item=item, id_num=idx,
-                metadata={"folders": "machinelearning"},
-            )
-
-    def query(self, query):
-        """ ... """
-        response = (self.database.query_data_base(  # type: ignore
-            query=query,
-            collection_name="word_documents"
-            )
-        )
-        return response
+    #def query(self, query):
+    #    """ ... """
+    #    response = (self.database.query_data_base(  # type: ignore
+    #        query=query,
+    #        collection_name="word_documents"
+    #        )
+    #    )
+    #    return response
 
 
 def create_module(vector_db_path: str,
@@ -144,16 +138,19 @@ def create_module(vector_db_path: str,
                   reset_db: bool = False,
                   ) -> AgentModule:
     """Set up the Agent"""
-    client = chroma_utils.get_client(path=vector_db_path) # grab client to work with chroma db
+    # grab client to work with chroma db
+    client = chroma_utils.get_client(path=vector_db_path)
+    vs = initialise_vector_store(path_to_chroma_db=vector_db_path,
+                                 collection='obsidan_databse')
     configuraton = Config(
         vector_db_path=vector_db_path,
         chroma_client=client,
         model_name=model_name,
         collection=collection,
         rag_type=rag_type,
-        reset_db=reset_db
-    )
-    return AgentModule(configuraton)
+        reset_db=reset_db,
+        vector_store=vs)
+    return AgentModule(configuration=configuraton)
 
 
 def test_run(path_to_note):
@@ -162,16 +159,16 @@ def test_run(path_to_note):
     """
 
     agent = create_module(
-        vector_db_path="/Users/mawuliagamah/utilities/chroma/chroma.sqlite3",
+        vector_db_path="/Users/mawuliagamah/utilities/chroma",
         collection="obsidan_databse",
         model_name="gpt-3.5-turbo",
         reset_db=True
         )
 
-    agent.parse_document(path_to_document=path_to_note)\
-        .embed_documents(collection="obsidan_databse")
+    agent = agent.parse_document(path_to_document=path_to_note)
+    agent.embed(collection="obsidan_databse")
 
-    agent.query("What are my knowledge gaps in graph neural networks?")
+    # agent.query("What are my knowledge gaps in graph neural networks?")
 
     # agent = (
     #    agent
