@@ -1,10 +1,12 @@
+"""This file contains the configuration settings for models and codebase"""
 import os
-from pathlib import Path
 from dotenv import load_dotenv
-import logging
-import sys
 
-from log import logger
+
+# from pathlib import Path
+# import logging
+# from log import logger
+# import sys
 
 load_dotenv()
 API_KEY = os.getenv("OPENAI_API_KEY")
