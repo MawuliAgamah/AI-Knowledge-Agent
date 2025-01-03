@@ -10,7 +10,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core import prompts, output_parsers, pydantic_v1
 from langchain.chains.llm import LLMChain
 
-from ..log import logger
+from ai_agent.core.log import logger
 
 
 # import sys
@@ -90,8 +90,8 @@ class DocumentAgent:
     def __init__(self, config, model, llm):
         self.config = config
         self.model = model
-        logger.info("Document Agent Initialised")
         self.llm = llm
+        logger.info("\033[1;37mDocument Agent Initialised\033[0m \n")
 
     # def map_reduce(self, map_prompt, reduce_prompt):
     #    """

@@ -34,7 +34,7 @@ from prompts.document_prompts import (
     reduce_template
 )
 
-from log import logger
+from ai_agent.core.log import logger
 
 
 class Document:

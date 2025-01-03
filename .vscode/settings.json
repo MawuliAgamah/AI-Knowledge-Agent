@@ -1,5 +1,7 @@
 {
     "python.analysis.extraPaths": [
         "/Users/mawuliagamah/gitprojects/ai_module/src"
-    ]
+    ],
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "standard"
 }
