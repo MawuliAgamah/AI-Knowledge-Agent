@@ -80,19 +80,26 @@ class AgentModule:
         return self
 
 
-def test():
+def test_run(path_to_note):
     """
-    ...
+    How user Module will be interacted with 
     """
-    agent = AgentModule()
-    path_to_note = [
-        '/Users/mawuliagamah/obsidian vaults/Software Company/Learning/Machine Learning/Graph Neural Networks.md']
 
-    agent = agent.set_up(
-        path_to_vectordb='/Users/mawuliagamah/utilities/chroma')
+    agent = AgentModule()
+
+    agent = (
+        agent
+        .set_up(path_to_vectordb='/Users/mawuliagamah/utilities/chroma'
+                )
+    )
 
     agent = agent.parse_document(path_to_document=path_to_note)
 
 
 if __name__ == "__main__":
-    test()
+
+    notes = ["""/Users/mawuliagamah/
+             obsidian vaults/Software Company/Learning/
+             Machine Learning/Graph Neural Networks.md"""]
+
+    test_run(path_to_note=notes)

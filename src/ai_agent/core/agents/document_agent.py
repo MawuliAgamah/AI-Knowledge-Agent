@@ -57,7 +57,7 @@ meta_data_prompt = ChatPromptTemplate.from_messages([
 # Define your desired data structure.
 class MetaData(BaseModel):
     """
-
+    ...
     """
     Keywords: list[str] = Field(
         description="List of keywords related to the document. The maximum is 5 items.")
@@ -84,6 +84,9 @@ class DocumentAgent:
         self.llm = llm
 
     def map_reduce(self, map_prompt, reduce_prompt):
+        """
+        ...
+        """
         pass
 
         # return map_reduce_output
@@ -106,6 +109,8 @@ class DocumentAgent:
         llm = ChatOpenAI(model=self.model, api_key=self.config['api_key'])
         chain = meta_data_prompt | llm | parser
         output = chain.invoke(
-            {"chunk": chunk, "format_instructions": parser.get_format_instructions()})
-        # print(output)
+            {
+                "chunk": chunk,
+                "format_instructions": parser.get_format_instructions()}
+        )
         return output
