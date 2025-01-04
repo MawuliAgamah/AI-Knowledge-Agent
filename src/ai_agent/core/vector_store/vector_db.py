@@ -63,7 +63,6 @@ class VecStoreEngine:
     def __init__(self, config):
         self.name = "database handler"
         self.config = config
-        logger.info("Created DB Handler")
 
     def get_collection(self, collection_name):
         """Get a collection"""
@@ -72,40 +71,37 @@ class VecStoreEngine:
         client.collections[f'{collection_name}'] = collection
         return collection
 
-    def add_document(self, document_object, collection, doc_type):
+    def add_document(self, document_object, collecton_name, doc_type):
         """
             document_object : Document() class generated in document.py
         """
         # get the chroma db collection
-        collection = self.get_collection(collection)
-        if doc_type == "docx":
-            chunks = document_object.get_contents("chunks")
+        collection = self.get_collection(collecton_name)
+        chunks = document_object.get_contents("chunks")
 
-            for key, chunk in chunks.items():
+        for key, chunk in chunks.items():
 
-                document_summary = chunk['metadata']['Document summary']
-                title = chunk['metadata']['Document title']
-                key_words = chunk['metadata']['keywords']
-                tags = chunk['metadata']['Tags']
-                questons = chunk['metadata']['questions']
+            document_summary = chunk['metadata']['Document summary']
+            title = chunk['metadata']['Document title']
+            key_words = chunk['metadata']['keywords']
+            tags = chunk['metadata']['Tags']
+            questons = chunk['metadata']['questions']
 
-                meta_data = {"summary": document_summary,
-                             "title": title,
-                             "tag": tags[0] if tags else '',
-                             "keyword": key_words[0] if key_words else '',
-                             "questions": questons[0] if questons else ''
-                             }
+            meta_data = {"summary": document_summary,
+                         "title": title,
+                         "tag": tags[0] if tags else '',
+                         "keyword": key_words[0] if key_words else '',
+                         "questions": questons[0] if questons else ''}
 
-                chroma_utils.add_items(collection=collection,
-                                       item=chunk['chunk'].page_content,
-                                       metadata=meta_data,
-                                       id_num=key
-                                       )
+            chroma_utils.add_items(collection=collection,
+                                   item=chunk['chunk'].page_content,
+                                   metadata=meta_data,
+                                   id_num=key)
 
-                logger.info("Document added to collection")
-            return self
-        else:
-            return print("non implemeted")
+        path = document_object.get_contents("path")
+        console.print(f"[bold green]✓[/bold green] {path} added to db")
+        return self
+
 
     def show_collection_contents(self):
         """Show the collections"""
@@ -144,7 +140,7 @@ class VectorStore:
         self.config = config
         self.engine = engine
         self.collection = collection
-  
+ 
         if reset_client:
             client = self.config.client.reset()  # This empties the database
             self.config = client
@@ -155,8 +151,7 @@ class VectorStore:
         """Add docuemnt to the vector store """
         self.engine.add_document(document_object,
                                  collection=collecton_name,
-                                 doc_type=doc_type
-                                 )
+                                 doc_type=doc_type)
         return self
 
     def query_data_base(self, query):
@@ -170,7 +165,7 @@ class VectorStore:
         return response
 
 
-def initialise_vector_store(path_to_chroma_db, collection):
+def initialise_vector_store(path_to_chroma_db, collection, collection_name):
     """Instantite and set up a vector store so it's ready to go"""
     configuraton = VectorStoreConfig(path_to_chroma_db=path_to_chroma_db)
     engine = VecStoreEngine(config=configuraton)
@@ -187,7 +182,9 @@ def test_run():
     """Enhanced test run with rich output"""
     initialise_vector_store(
         path_to_chroma_db="/Users/mawuliagamah/utilities/chroma",
-        collection="obsidian_database")
+        collection="obsidian_database",
+        collection_name="obsidian_database"
+        )
     console.print("[bold green]✓[/bold green] Test run completed successfully")
 
     # Display some test information

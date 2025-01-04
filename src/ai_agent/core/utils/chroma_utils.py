@@ -32,10 +32,10 @@ def get_client(path):
     else:
         print("Making new client") 
         client = chromadb.PersistentClient(
-        path=path,
-        settings=Settings(allow_reset=True),
-        tenant=DEFAULT_TENANT,
-        database=DEFAULT_DATABASE,
+            path=path,
+            settings=Settings(allow_reset=True),
+            tenant=DEFAULT_TENANT,
+            database=DEFAULT_DATABASE,
         )
 
     return client

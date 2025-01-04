@@ -39,12 +39,12 @@ class Config:
 
 class AgentModule:
     """Entry point to ai agent system"""
-    database: Optional[Any] 
+    database: Optional[Any]
     document_agent: Optional[DocumentAgent]
     document_parser: Optional[DocumentPipeline]
     client: Optional[Any]  # Type from chroma client
     parsed_documents: List[Any]  # Type from your document objects
-    
+
     def __init__(self, configuration: Config, database):
         self.client = None
         self.document_parser = None
@@ -109,17 +109,18 @@ class AgentModule:
                 print(f"Error parsing document {doc_path}: {str(e)}")
         return self
 
-    def embed(self, collection):
+    def embed(self,collection_name):
         """Embed the parsed documents in vector db"""
+        # collection = self.config.collection
         for doc in self.parsed_documents:
-            (self.database.add_document(
-
-            )
-             
-            )
+            self.database = (self.database
+                             .add_document(document_object=doc,  # type: ignore
+                                           collecton_name=collection_name,
+                                           doc_type="docx"))
         return self
 
-    #def query(self, query):
+    #
+    # def query(self, query):
     #    """ ... """
     #    response = (self.database.query_data_base(  # type: ignore
     #        query=query,
@@ -139,6 +140,7 @@ def create_module(vector_db_path: str,
     # grab client to work with chroma db
     client = chroma_utils.get_client(path=vector_db_path)
     vs = initialise_vector_store(path_to_chroma_db=vector_db_path,
+                                 collection_name='obsidan_databse',
                                  collection='obsidan_databse')
     configuraton = Config(vector_db_path=vector_db_path,
                           chroma_client=client,
@@ -162,7 +164,7 @@ def test_run(path_to_note):
         )
 
     agent = agent.parse_document(path_to_document=path_to_note)
-    agent.embed(collection="obsidan_databse")
+    agent.embed(collection_name="obsidan_databse")
 
     # agent.query("What are my knowledge gaps in graph neural networks?")
 
@@ -182,9 +184,16 @@ def test_run(path_to_note):
     #    document_object, collecton_name="word_documents", doc_type="docx")
 
     # resonse = database_pipeline.query_data_base(
-    #    query="What skills do i need for a data role?", collection_name="word_documents")
+    #   query="What skills do i need for a data role?", collection_name="word_documents")
 
 
 if __name__ == "__main__":
-    notes = ["""/Users/mawuliagamah/obsidian vaults/Software Company/Learning/Machine Learning/Graph Neural Networks.md"""]
+    import os
+    notes = [
+        os.path.join(
+            "/Users/mawuliagamah/obsidian vaults",
+            "Software Company/Learning/Machine Learning",
+            "Graph Neural Networks.md"
+        )
+    ]
     test_run(path_to_note=notes)

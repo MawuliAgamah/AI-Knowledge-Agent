@@ -4,7 +4,7 @@ Script which handles everything related to processing to be embedded.
 # import os
 # import sys
 # import glob
-
+import sqlite3
 
 # from tqdm import tqdm
 from langchain.chains import MapReduceDocumentsChain, ReduceDocumentsChain
@@ -27,7 +27,7 @@ from nltk.stem import *
 
 from gensim.parsing.preprocessing import remove_stopwords
 
-from agents.document_agent import DocumentAgent
+from ai_agent.core.agents.document_agent import DocumentAgent
 
 from prompts.document_prompts import (
     map_template,
@@ -37,23 +37,56 @@ from prompts.document_prompts import (
 from ai_agent.core.log import logger
 
 
+@dataclass
+class DocumentState:
+    """Tracks the construction state of a document"""
+    is_initialized: bool = False
+    is_loaded: bool = False
+    is_preprocessed: bool = False
+    is_chunked: bool = False
+    is_summarized: bool = False
+
+
+class DocumentSQL:
+    """Handles SQL operations for documents"""
+
+        def __init__(self, db_path: str = "documents.db"):
+            self.db_path = db_path
+            self._init_db()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class Document:
     """The Document Object Class that represents a document and
     its associated metadata.
 
-    Class serves as a container for document content, metadata, and processing states.
-    It maintains information about the document's path, content, chunks, summaries, and
-    other metadata in a structured format.
+    Class serves as a container for document content, 
+    metadata, and processing states. Maintains information about the document's path, content, chunks,
+    summaries, and other metadata in a structured format.
 
     Attributes:
-        contents (dict): A dictionary containing all document-related information including:
+        contents (dict): A dictionary containing all document-related 
+        information including:
             - id: Unique identifier for the document
             - path: File path to the document
             - document: The loaded document object
             - chunked_document: Document split into smaller chunks
             - chunks: Dictionary of processed document chunks with metadata
             - summary: Document summary
-            - metadata: Document metadata including title, topic, filename, etc.
+            - metadata: Document metadata 
+                        including title, topic, filename, etc.
     """
 
     def __init__(self, path):
@@ -74,18 +107,16 @@ class Document:
         }
 
     def get_document(self):
-        """"
-
-
+        """
+        Pull out a document
         """
         return self
 
     def get_contents(self, contents):
         """
         Returns the contents of different attributes of the document.
-        self.contents['docuemnt'] currently stores the document as a langchain document. 
-        The raw text is accessed via [0].page_contents
-
+        self.contents['docuemnt'] currently stores the document
+        as a langchain document.The raw text is accessed via [0].page_contents
         """
         if contents == "document":
             return self.contents['document']
@@ -211,7 +242,7 @@ class DocumentBuilder:
 
     def add_chunks(self, document_object, llm):
         """
-        ...
+        Insert the chunks intot the document object 
         """
 
         chunks = document_object.get_contents("chunked_document")
