@@ -37,6 +37,8 @@ from prompts.document_prompts import (
 )
 
 from ai_agent.core.log import logger
+from ai_agent.core.document.sql_queries import (save_document_query,
+                                                create_library_table_query)
 
 from rich.console import Console
 console = Console()
@@ -64,28 +66,55 @@ class DocumentSQL:
         db_path = './databases/sql_lite/document_db.sqlite3'
         os.makedirs(db_path, exist_ok=True) # create a directory if it doesn't exist
 
-        # Create the Document Table
+        # Create the Document Tables
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
-                 CREATE TABLE IF NOT EXISTS document (
-                         if INTEGER PRIMARY KEY,
-                         file_lath TEXT UNIQUE,
-                         raw_content TEXT,
-                         chunks_json, TEXT,
-                         metadata_json TEXT,
-                         last_modified TEXT,
-                         created_AT text,
-                         updated_at TEXT 
-                         )
-                         """)
+            # Create documents table
+            conn.execute(create_library_table_query)
+            # Create chunks table
+            #conn.execute("""
+            #    CREATE TABLE IF NOT EXISTS document_chunks (
+            #        id INTEGER PRIMARY KEY,
+            #        document_id INTEGER,
+            #        chunk_index INTEGER,
+            #        chunk_content TEXT,
+            #        metadata JSON,
+            #        FOREIGN KEY (document_id) REFERENCES documents(id),
+            #        UNIQUE(document_id, chunk_index)
+            #    )
+            #""")
+            # Create indexes
+            #conn.execute("""
+            #    CREATE INDEX IF NOT EXISTS idx_documents_hash 
+            #    ON documents(file_hash)
+            #""")
+            #conn.execute("""
+            #    CREATE INDEX IF NOT EXISTS idx_chunks_document_id 
+            #    ON document_chunks(document_id)
+            #""")
+
             conn.commit()
         console.print(f"[bold green]✓[/bold green] document db created at : {db_path}")
 
     
-    def save_document(self):
+    def save_document(self,document):
         """ Persist a fully constructred document to the daatabase"""
-        try;
-            pass
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                # insert document db
+                # populate the library table
+                cursor.execute(save_document_query,
+                               (
+                               document.path,
+                               document.chunks,
+                               document.title,
+                               document.doctype,
+                               document.summary,
+                               document.title
+                               )
+                               )
+                # insert document metadata it no 
+
         except Exception as e:
             console.print(f"[red]Error saving document to database: {e}[/red]")
             return False
@@ -223,14 +252,7 @@ class DocumentBuilder:
         return document
 
     def load(self, document_object):
-        """Loads a document into the langchain data loader.
-
-        Parameters:
-            document_object (Document): The Document object to load
-
-        Returns:
-            Document: The Document object with loaded content
-        """
+        """Loads a document into the langchain data loader."""
         path_to_document = document_object.get_contents('path')
         if path_to_document.endswith('.docx'):
             #loader = self.loader_docx(path_to_document)
@@ -251,9 +273,7 @@ class DocumentBuilder:
             return document_object
 
     def pre_process(self, document_object):
-        """
-        ...
-        """
+        """..."""
         # Get page contents from the document object
         page_contents = document_object.get_contents(contents="page_contents")
         page_contents = page_contents.lower()  # Make page contents lower case
@@ -264,7 +284,7 @@ class DocumentBuilder:
         # Update the page contents of the documnet
         document_object = document_object.update(
             contents="page_content", payload=page_contents)
-        logger.info("Document Pre-Processed")  # Log on completion
+        console.print("[bold green]✓[/bold green] Stop words removed and lemmatized")
         return document_object
 
     def chunk_document(self, document_object):
@@ -398,14 +418,16 @@ class DocumentPipeline:
 
     def _persist(self,document_object):
         """Store the contents of the document object to SQL Lite DB"""
-        exists = self.db.doc_exists()
-        created = self.doc_created()
-        if exists && created:
-            self.db.save_document()
+        exists = False #self.db.doc_exists()
+        created = False #self.doc_created()
+        if exists & created:
+            print('Document Already Created')
+            #self.db.save_document()
+            #console.pr
         else:
-            pass 
+            print('Persisting DB .... IMPLEMENTING THIS')
 
-    def build_document(self, path_to_document):
+    def build_document(self, path_to_document,persist):
         """
         Sequence of operations to build 
         a full document given the path to
@@ -435,12 +457,14 @@ class DocumentPipeline:
         document = self.document_builder.add_chunks(
             document_object=document, llm=self.llm)
         
-        self._persist(document)
+        if persist:
+            pass
+        #    self._persist(document)
         return document
 
 
 
-def build_document(path,meta_data = None):
+def build_document(path,meta_data = None,persist = True):
     """Main Function to build a whole document"""
     doc_builder = DocumentBuilder(document = Document(),
                                   loader_docx=Docx2txtLoader(path),
@@ -451,13 +475,21 @@ def build_document(path,meta_data = None):
     # will need to refactor this 
     document_agent = DocumentAgent(config=config,llm = ChatOpenAI, model = 'gpt-3.5-turbo')
     sql_db = DocumentSQL()
-    doc_pipeline = DocumentPipeline(document_builder=doc_builder, 
-                                    llm = document_agent,
-                                    db = sql_db)
     
-    with console.status("[bold blue]Building document...") as status:
-        doc_pipeline.build_document(path_to_document=path)
+    # pipeline to build out a document 
+    doc_pipeline = (
+        DocumentPipeline(
+        document_builder=doc_builder, 
+        llm = document_agent,
+        db = sql_db,
+        )
+    )
+    from time import sleep
+    with console.status("[bold blue] Building document", spinner="dots") as status:
 
+        doc_pipeline.build_document(path_to_document=path, persist=persist)
+
+        status.update("[bold red] Finished ")
 
 
 def test_run():
@@ -468,8 +500,13 @@ def test_run():
             "Software Company/Learning/Machine Learning",
             "Graph Neural Networks.md"
         )
-    build_document(path = path, meta_data=None)
     
+    document = build_document(path = path, meta_data=None ,persit = False)
+    pprint(document.contents)
+    
+
+
+
 
 if __name__ == "__main__":
 test_run()
