@@ -38,5 +38,5 @@ SAVE_DOCUMENT_IN_LIBRARY = """
         document_type = excluded.document_type,
         summary = excluded.summary,
         metadata_title = excluded.metadata_title,
-        updated_at = DATETIME('now')
+        updated_at = DATETIME('now')  
 """

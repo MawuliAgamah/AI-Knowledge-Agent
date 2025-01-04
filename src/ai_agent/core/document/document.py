@@ -114,7 +114,7 @@ class DocumentSQL:
                                )
                                )
                 # insert document metadata it no 
-
+            console.print(f"[red] Document Saved to DB : {document.path}[/red]")
         except Exception as e:
             console.print(f"[red]Error saving document to database: {e}[/red]")
             return False
