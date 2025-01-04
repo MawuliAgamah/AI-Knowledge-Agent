@@ -122,3 +122,7 @@ class DocumentAgent:
                 "format_instructions": parser.get_format_instructions()}
         )
         return output
+
+
+
+# DocumentAgent(llm = ChatOpenAI)
