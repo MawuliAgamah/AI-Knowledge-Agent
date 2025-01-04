@@ -5,12 +5,13 @@ License:
 """
 from dataclasses import dataclass
 from typing import List, Optional, Any
-from pathlib import Path
-from ai_agent.core.utils import chroma_utils
 from langchain_openai import ChatOpenAI
-# from utils.chroma_utils import (get_client, add_item_to_chroma_db)
-
-from document.document import (
+# from pathlib import Path
+from ai_agent.core.utils import chroma_utils
+from ai_agent.core.vector_store.vector_db import initialise_vector_store
+from ai_agent.core.agents.document_agent import DocumentAgent
+from ai_agent.core.config.config import config
+from ai_agent.core.document.document import (
     DocumentPipeline,
     DocumentBuilder
 )
@@ -23,37 +24,32 @@ from document.document import (
 #    DataBasePipeline
 # )
 
-from vector_store.vector_db import initialise_vector_store
-from agents.document_agent import DocumentAgent
-from config.config import config
-
 
 @dataclass
 class Config:
     """Configuration class for AgentModule"""
     vector_db_path: str
     chroma_client: Optional[Any]  # not sure what the chorma client is yet
-    vector_store: Optional[Any]
+    # vector_store: Optional[Any]
     model_name: str = "gpt-3.5-turbo"
     rag_type: str = "vector"
     reset_db: bool = False
     collection: str = "base"
 
 
-
 class AgentModule:
     """Entry point to ai agent system"""
-    database: Optional[Any]
+    database: Optional[Any] 
     document_agent: Optional[DocumentAgent]
     document_parser: Optional[DocumentPipeline]
     client: Optional[Any]  # Type from chroma client
     parsed_documents: List[Any]  # Type from your document objects
-
-    def __init__(self, configuration: Config):
+    
+    def __init__(self, configuration: Config, database):
         self.client = None
         self.document_parser = None
         self.document_agent = None
-        self.database = None
+        self.database = database
         self.parsed_documents = []
         self.config = configuration
 
@@ -75,10 +71,10 @@ class AgentModule:
         # ----------------------------------
         # 1. initialise vector
         # ----------------------------------
-        #self.database = DataBasePipeline(reset_client=True,
+        # self.database = DataBasePipeline(reset_client=True,
         #                                 client=self.config.chroma_client
         #                                 )
-        self.database = self.config.vector_store
+        # self.database = self.atabase
         # ----------------------------------
         # 2.initialise document agent
         # ----------------------------------
@@ -116,9 +112,11 @@ class AgentModule:
     def embed(self, collection):
         """Embed the parsed documents in vector db"""
         for doc in self.parsed_documents:
-            self.database.add_document(document_object=doc,  # type: ignore
-                                       collection_name=self.config.collection,
-                                       doc_type='md')
+            (self.database.add_document(
+
+            )
+             
+            )
         return self
 
     #def query(self, query):
@@ -142,15 +140,13 @@ def create_module(vector_db_path: str,
     client = chroma_utils.get_client(path=vector_db_path)
     vs = initialise_vector_store(path_to_chroma_db=vector_db_path,
                                  collection='obsidan_databse')
-    configuraton = Config(
-        vector_db_path=vector_db_path,
-        chroma_client=client,
-        model_name=model_name,
-        collection=collection,
-        rag_type=rag_type,
-        reset_db=reset_db,
-        vector_store=vs)
-    return AgentModule(configuration=configuraton)
+    configuraton = Config(vector_db_path=vector_db_path,
+                          chroma_client=client,
+                          model_name=model_name,
+                          collection=collection,
+                          rag_type=rag_type,
+                          reset_db=reset_db)
+    return AgentModule(configuration=configuraton, database=vs)
 
 
 def test_run(path_to_note):

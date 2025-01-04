@@ -1,5 +1,5 @@
-"""This scri 
-Database class : 
+"""This scri
+Database class :
 Database handler:
 Database Pipeline:
 """
@@ -30,6 +30,7 @@ from ai_agent.core.log import logger
 from ai_agent.core.utils import chroma_utils
 
 console = Console()
+
 
 @dataclass
 class VectorStoreConfig:
@@ -143,7 +144,7 @@ class VectorStore:
         self.config = config
         self.engine = engine
         self.collection = collection
-     
+  
         if reset_client:
             client = self.config.client.reset()  # This empties the database
             self.config = client
