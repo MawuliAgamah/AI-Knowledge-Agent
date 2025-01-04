@@ -7,35 +7,45 @@ Database Pipeline:
 # import sys
 import os
 from typing import Any
+
 from dataclasses import dataclass
 import chromadb.utils.embedding_functions as embedding_functions
-from dotenv import load_dotenv
-
-from log import logger
-
-
-import utils.chroma_utils as chroma_utils
 from llama_index.vector_stores.chroma import ChromaVectorStore
+
 
 from llama_index.core import (
     StorageContext,
     VectorStoreIndex
 )
 
+from dotenv import load_dotenv
+
+from rich.console import Console
+# from rich.panel import Panel
+# from rich.table import Table
+# from rich.progress import track
+# from rich import print as rprint
+
+from ai_agent.core.log import logger
+from ai_agent.core.utils import chroma_utils
+
+console = Console()
 
 @dataclass
 class VectorStoreConfig:
     """Confiuration class for the database"""
     def __init__(self, path_to_chroma_db):
         self.path_to_chroma_db = path_to_chroma_db
-        self.client = None
-        engine = None
+        self.client = self.get_chroma_client()
+        self.engine = None
         self.api_key: str
         self.embedding_model = "text-embedding-3-small"
 
     def get_chroma_client(self) -> Any:
         """Get the chroma db client"""
-        return chroma_utils.get_client(path=self.path_to_chroma_db)
+        client = chroma_utils.get_client(path=self.path_to_chroma_db)
+        print(client)
+        return client
 
     def get_embedding_function(self) -> Any:
         """Get the embedding function"""
@@ -49,11 +59,10 @@ class VectorStoreConfig:
 class VecStoreEngine:
     """Class which handle all interactions with the database"""
 
-    def __init__(self,config):
+    def __init__(self, config):
         self.name = "database handler"
-        self.config=config
+        self.config = config
         logger.info("Created DB Handler")
-
 
     def get_collection(self, collection_name):
         """Get a collection"""
@@ -91,17 +100,18 @@ class VecStoreEngine:
                                        metadata=meta_data,
                                        id_num=key
                                        )
-            
-            logger.info("Document added to collection")
+
+                logger.info("Document added to collection")
             return self
         else:
             return print("non implemeted")
 
     def show_collection_contents(self):
         """Show the collections"""
-        print(self.client.list_collections())
+        print(self.config.client.list_collections())
 
-    def create_or_load_vector_store_index(self, chroma_collecion):
+    def load_vector_store_index(self, chroma_collecion):
+        """Load up the Vector Store Index"""
         # Check if index exists
         vector_store = ChromaVectorStore(chroma_collection=chroma_collecion)
         storage_context = StorageContext.from_defaults(
@@ -119,8 +129,6 @@ class VecStoreEngine:
         response = query_engine.query(query)
         return response
 
-# self.client = (chroma_utils.get_client(path='/Users/mawuliagamah/gitprojects/STAR/db/chroma/chroma.sqlite3'))
-
 
 class VectorStore:
     """
@@ -135,30 +143,30 @@ class VectorStore:
         self.config = config
         self.engine = engine
         self.collection = collection
-        
+     
         if reset_client:
-            client = self.config.client.reset()  # This empties the database 
+            client = self.config.client.reset()  # This empties the database
             self.config = client
         else:
             pass
-        
+
     def add_document(self, document_object, collecton_name, doc_type):
         """Add docuemnt to the vector store """
         self.engine.add_document(document_object,
-                          collection=collecton_name,
-                          doc_type=doc_type)
+                                 collection=collecton_name,
+                                 doc_type=doc_type
+                                 )
         return self
 
     def query_data_base(self, query):
-        """Query the vector stor e"""
-        # chorma_client = self.client
-        collection = self.engine.get_collection(collection_name=self.collection)
-        index = self.engine.create_or_load_vector_store_index(chroma_collecion=collection)
-        response =self.engine.search(index=index, query=query)
+        """Query the vector store"""
+        collection_name = self.collection
+        collection = (self.engine
+                      .get_collection(collection_name=collection_name))
+        index = (self.engine
+                 .load_vector_store_index(chroma_collecion=collection))
+        response = self.engine.search(index=index, query=query)
         return response
-
-    # def document(self,query):
-    #    return output
 
 
 def initialise_vector_store(path_to_chroma_db, collection):
@@ -170,6 +178,28 @@ def initialise_vector_store(path_to_chroma_db, collection):
                              engine=engine,
                              client=client,
                              collection=collection))
+    console.print("[bold green]✓[/bold green] Chroma DB Initialised ")
     return vec_store
 
 
+def test_run():
+    """Enhanced test run with rich output"""
+    initialise_vector_store(
+        path_to_chroma_db="/Users/mawuliagamah/utilities/chroma",
+        collection="obsidian_database")
+    console.print("[bold green]✓[/bold green] Test run completed successfully")
+
+    # Display some test information
+    # test_info = Table(title="Vector Store Information")
+    # test_info.add_column("Property", style="cyan")
+    # test_info.add_column("Value", style="magenta")
+    # test_info.add_row("Database Path", str(store.config.path_to_chroma_db))
+    # test_info.add_row("Collection", store.collection)
+    # test_info.add_row("Embedding Model", store.config.embedding_model)
+
+    # except Exception as e:
+    #    console.print(f"[red]Test run failed: {e}[/red]")
+
+
+if __name__ == "__main__":
+    test_run()
