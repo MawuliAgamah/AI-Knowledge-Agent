@@ -314,7 +314,7 @@ class DocumentBuilder:
             )
         return document_object
 
-    def generate_summary(self, document_object, llm):
+    def generate_summary_old(self, document_object, llm):
         """
         Generate a summary of the document using language model.
 
@@ -330,6 +330,7 @@ class DocumentBuilder:
         ------
         The document object.
         """
+        from langchain.chains.combine_documents import create_stuff_documents_chain
         # We should encapsulate all of this into the LLM, so that its the llm that does the map reduce.
         # Create document summary via langchains map reduce - document_summary = llm.map_reduce(map_prompt,reduce_prompt)
         map_prompt = PromptTemplate.from_template(map_template)
@@ -340,6 +341,7 @@ class DocumentBuilder:
         combine_documents_chain = StuffDocumentsChain(
             llm_chain=reduce_chain, document_variable_name="doc_summaries")
         # logger.info(f"Combine document chain : {combine_documents_chain}")
+
         reduce_documents_chain = ReduceDocumentsChain(
             combine_documents_chain=combine_documents_chain,
             collapse_documents_chain=combine_documents_chain
@@ -361,6 +363,63 @@ class DocumentBuilder:
         document_object.summary = document_summary
         console.print("[bold green]✓[/bold green] Document summary generated")
         return document_object
+    
+    def generate_summary(self, document_object, llm):
+        """
+        Generate a summary of the document using language model.
+        
+        params
+        ------
+        document_object : object
+            document object which stores a document, and related meta data.
+        
+        llm : object
+            language model used to summarise the document.
+        
+        returns
+        ------
+        The document object.
+        """
+        from langchain.chains.combine_documents import create_stuff_documents_chain
+        from langchain_core.prompts import ChatPromptTemplate
+        
+        # Extract the actual LLM from the DocumentAgent
+        actual_llm = llm.llm
+        
+        # Create prompt template for summarization
+        prompt = ChatPromptTemplate.from_template("Summarize this content: {context}")
+    
+        
+        # Create the chain using the actual LLM
+        chain = create_stuff_documents_chain(actual_llm, prompt)
+        
+        # Get the chunked document
+        chunks = document_object.get_contents("chunked_document")
+        
+        try:
+            # Generate summary using the chain - note the changed input format
+            document_summary = chain.invoke({
+                "context": chunks
+            })
+            
+            # The result might be in a different format now, so let's handle that
+            if isinstance(document_summary, dict):
+                summary_text = document_summary.get('output', '')
+            else:
+                summary_text = str(document_summary)
+            
+            # Update the document summary
+            document_object = document_object.update(
+                "summary", payload=summary_text
+            )
+            document_object.summary = summary_text
+            
+            console.print("[bold green]✓[/bold green] Document summary generated")
+            return document_object
+            
+        except Exception as e:
+            console.print(f"[bold red]Error generating summary: {str(e)}[/bold red]")
+            raise
 
     def generate_meta_data(self, document_object_llm):
         """
@@ -448,7 +507,7 @@ def build_document(path,meta_data = None,persist = True):
                                   text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=5))
 
     # will need to refactor this 
-    document_agent = DocumentAgent(config=config,llm = ChatOpenAI, model = 'gpt-3.5-turbo')
+    document_agent = DocumentAgent(config=config,llm = ChatOpenAI(), model = 'gpt-3.5-turbo')
     sql_db = DocumentSQL()
     
     # pipeline to build out a document 
@@ -462,9 +521,10 @@ def build_document(path,meta_data = None,persist = True):
     from time import sleep
     with console.status("[bold blue] Building document", spinner="dots") as status:
 
-        doc_pipeline.build_document(path_to_document=path, persist=persist)
+        document = doc_pipeline.build_document(path_to_document=path, persist=persist)
 
         status.update("[bold red] Finished ")
+    return document
 
 
 from pprint import pprint
