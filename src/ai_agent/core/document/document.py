@@ -31,14 +31,14 @@ from gensim.parsing.preprocessing import remove_stopwords
 from ai_agent.core.agents.document_agent import DocumentAgent
 from ai_agent.core.config import config
 
-from prompts.document_prompts import (
+from ai_agent.core.prompts.document_prompts import (
     map_template,
     reduce_template
 )
 
 from ai_agent.core.log import logger
-from ai_agent.core.document.sql_queries import (save_document_query,
-                                                create_library_table_query)
+from ai_agent.core.document.sql_queries import (CREATE_LIBRARY_TABLE,
+                                                SAVE_DOCUMENT_IN_LIBRARY)
 
 from rich.console import Console
 console = Console()
@@ -56,45 +56,8 @@ import os
 class DocumentSQL:
     """Handles SQL operations for documents"""
 
-    def __init__(self, db_path: str = "documents.db"):
-        self.db_path = db_path
-        self._init_db()
-
-    def _init_db(self):
-        """Initialised the data base. Creates on if it doesn't exist"""
-
-        db_path = './databases/sql_lite/document_db.sqlite3'
-        os.makedirs(db_path, exist_ok=True) # create a directory if it doesn't exist
-
-        # Create the Document Tables
-        with sqlite3.connect(self.db_path) as conn:
-            # Create documents table
-            conn.execute(create_library_table_query)
-            # Create chunks table
-            #conn.execute("""
-            #    CREATE TABLE IF NOT EXISTS document_chunks (
-            #        id INTEGER PRIMARY KEY,
-            #        document_id INTEGER,
-            #        chunk_index INTEGER,
-            #        chunk_content TEXT,
-            #        metadata JSON,
-            #        FOREIGN KEY (document_id) REFERENCES documents(id),
-            #        UNIQUE(document_id, chunk_index)
-            #    )
-            #""")
-            # Create indexes
-            #conn.execute("""
-            #    CREATE INDEX IF NOT EXISTS idx_documents_hash 
-            #    ON documents(file_hash)
-            #""")
-            #conn.execute("""
-            #    CREATE INDEX IF NOT EXISTS idx_chunks_document_id 
-            #    ON document_chunks(document_id)
-            #""")
-
-            conn.commit()
-        console.print(f"[bold green]✓[/bold green] document db created at : {db_path}")
-
+    def __init__(self):
+        self.db_path = "/Users/mawuliagamah/gitprojects/aiModule/databases/sql_lite/document_db.db"
     
     def save_document(self,document):
         """ Persist a fully constructred document to the daatabase"""
@@ -103,10 +66,11 @@ class DocumentSQL:
                 cursor = conn.cursor()
                 # insert document db
                 # populate the library table
-                cursor.execute(save_document_query,
+                cursor.execute(SAVE_DOCUMENT_IN_LIBRARY,
                                (
                                document.path,
                                document.chunks,
+                               document.no_of_chunks,
                                document.title,
                                document.doctype,
                                document.summary,
@@ -149,14 +113,17 @@ class Document:
         self.id = None
         self.hash = None
         self.path = None
+        self.doc_type = None
         self.contents = {
             "id": None,
             "path": None,
-            "hash":None,
-            "document": None,
-            "chunked_document": None,
-            "chunks": {},
+            "document_hash":None,
+            "raw_txt": None,
+            "langchain.docObject":None,
             "summary": None,
+            "chunks": {},
+            "no_of_chunks": None,
+            "doc_type":None,
             "metadata": {
                 "title": None,
                 "Topic": None,
@@ -185,7 +152,7 @@ class Document:
         as a langchain document.The raw text is accessed via [0].page_contents
         """
         if contents == "document":
-            return self.contents['document']
+            return self.contents['langchain.docObject']
         elif contents == "path":
             return self.contents['path']
         elif contents == "summary":
@@ -195,17 +162,16 @@ class Document:
         elif contents == "chunks":
             return self.contents['chunks']
         elif contents == "page_contents":
-            return self.contents['document'][0].page_content
+            return self.contents['langchain.docObject'][0].page_content
 
     def update(self, contents, payload, chunk_id=None,):
         """
         method to update a documents contents
-
         """
         if contents == "path":
             self.contents['path'] = payload
         if contents == "page_content":
-            self.contents['document'][0].page_content = payload
+            self.contents['langchain.docObject'][0].page_content = payload
             return self
         elif contents == "chunked_document":
             self.contents['chunked_document'] = payload
@@ -219,18 +185,15 @@ class Document:
         else:
             return ValueError('Not yet implemented')
 
-
     def persist(self):
         """Persit the constructed document to SQL"""
-
-
+   
+ 
 # Define all imports which are used by the class below
 
 
 class DocumentBuilder:
-    """
-    Construct Document Object
-    """
+    """Construct Document Object"""
     def __init__(self,
                  document,
                 loader_docx,
@@ -246,31 +209,36 @@ class DocumentBuilder:
         self.text_splitter = text_splitter
    
     def create_template(self, path):
-        """initialises the document object setting the documents path attribute as the path."""
-        document = self.document.set(path=path)
+        """Initialise the document object setting the documents path attribute as the path."""
+        document_template = self.document.set(path=path)
         console.print("[bold green]✓[/bold green] created document template")
-        return document
+        return document_template
 
-    def load(self, document_object):
+    def create_hash(self,document_object):
+        from hashlib import sha256
+        """from the path of the file, create a uniuqe hash in referencee to it"""
+        path_to_doc = str(document_object.path)
+        hash_object = sha256(path_to_doc.encode())
+        document_object.hash = hash_object.hexdigest()[:8]
+        console.print("[bold green]✓[/bold green] document hash generated")
+        return document_object
+
+    def load_doc_into_langchain(self, document_object):
         """Loads a document into the langchain data loader."""
         path_to_document = document_object.get_contents('path')
         if path_to_document.endswith('.docx'):
-            #loader = self.loader_docx(path_to_document)
             doc = self.loader_docx.load()
-            document_object.contents['document'] = doc
-            self.document.contents['document'] = doc
-            document_object.contents['metadata']['document_type'] = 'docx'
+            document_object.contents['langchain.docObject'] = doc
+            document_object.doc_type = 'docx'
             console.print("[bold green]✓[/bold green] document loaded into langchain (.docx)")
             return document_object
         # Markdown document
         elif path_to_document.endswith('.md'):
-            #loader = self.loader_md(path_to_document)
             doc = self.loader_md.load()
-            document_object.contents['document'] = doc
-            self.document.contents['document'] = doc
-            document_object.contents['metadata']['document_type'] = 'md'
+            self.document.contents['langchain.docObject'] = doc
+            self.document.doc_type = 'md'
             console.print("[bold green]✓[/bold green] document loaded into langchain (.md)")
-            return document_object
+            return self.document
 
     def pre_process(self, document_object):
         """..."""
@@ -282,8 +250,9 @@ class DocumentBuilder:
         page_contents = ' '.join(lemmertizer.lemmatize(token) for token in nltk.word_tokenize(page_contents))
         page_contents = remove_stopwords(page_contents)  # remove stop words
         # Update the page contents of the documnet
-        document_object = document_object.update(
+        document_object = (document_object.update(
             contents="page_content", payload=page_contents)
+        )
         console.print("[bold green]✓[/bold green] Stop words removed and lemmatized")
         return document_object
 
@@ -300,27 +269,25 @@ class DocumentBuilder:
         document_object : object
         """
         docoument = document_object.get_contents("document")
-
         chunks = self.text_splitter.split_documents(docoument)
-        
         document_object = document_object.update(
             "chunked_document", payload=chunks)
+
+        # calculate the number of chunks 
         return document_object
 
     def add_chunks(self, document_object, llm):
-        """
-        Insert the chunks intot the document object 
-        """
+        """Insert the chunks intot the document object """
 
         chunks = document_object.get_contents("chunked_document")
         document_summary = document_object.get_contents("summary")
         # document_title = document_object.get_contents("title")
 
         # Add the chunk a longside it's ID to the Chunks dictionairy
-        logger.info(
-            f"{len(chunks)} chunks to iterate through in this doucment")
+        logger.info(f"{len(chunks)} chunks to iterate through in this doucment")
 
         # for idx,chunk in tqdm(enumerate(chunks),desc="Chunking with metadata : ",total=len(chunks)):
+        chunk_list = []
         for idx, chunk in enumerate(chunks):
             logger.info(f"Chunk : {idx}")
             metadata = llm.make_metadata(chunk)
@@ -333,6 +300,9 @@ class DocumentBuilder:
                     "Tags": metadata['Tags'],
                     "questions": metadata['Questions']
                 }}
+            chunk_list.append(chunk)
+            print('Chunks' ,chunk_list)    
+            print('n_Chunks' ,len(chunk_list))    
 
             document_object = (
                 document_object
@@ -388,6 +358,8 @@ class DocumentBuilder:
         document_object = document_object.update(
             "summary", payload=document_summary)
 
+        document_object.summary = document_summary
+        console.print("[bold green]✓[/bold green] Document summary generated")
         return document_object
 
     def generate_meta_data(self, document_object_llm):
@@ -442,10 +414,11 @@ class DocumentPipeline:
          
 
         document_template = self.document_builder.create_template(path=path_to_document)
+        hashed_document = self.document_builder.create_hash(document_object=document_template)
         
         document = (
             self.document_builder
-            .load(document_object=document_template)
+            .load_doc_into_langchain(document_object=hashed_document)
         )
         document = self.document_builder.pre_process(document_object=document)
         document = self.document_builder.chunk_document(
@@ -458,7 +431,9 @@ class DocumentPipeline:
             document_object=document, llm=self.llm)
         
         if persist:
-            pass
+            print("Saving document")
+        else:
+            print("Persit = False, document not saved")
         #    self._persist(document)
         return document
 
@@ -492,6 +467,7 @@ def build_document(path,meta_data = None,persist = True):
         status.update("[bold red] Finished ")
 
 
+from pprint import pprint
 def test_run():
     """Test Module"""
     import os 
@@ -501,15 +477,25 @@ def test_run():
             "Graph Neural Networks.md"
         )
     
-    document = build_document(path = path, meta_data=None ,persit = False)
+    document = build_document(path = path, meta_data=None ,persist=False)
     pprint(document.contents)
     
+# self._init_db()
 
+def init_db(self):
+    """Initialised the data base. Creates on if it doesn't exist"""
+    self.db_path = '/Users/mawuliagamah/gitprojects/aiModule/databases/sql_lite/document_db.db'
+    # Create the Document Tables
+    with sqlite3.connect(self.db_path) as conn:
+        # Create documents table
+        conn.execute(CREATE_LIBRARY_TABLE)
+        conn.commit()
+    console.print(f"[bold green]✓[/bold green] document db created at : {self.db_path}")
 
 
 
 if __name__ == "__main__":
-test_run()
+    test_run()
 
 
 #    path = "/Users/mawuliagamah/gitprojects/STAR/data/documents/word/Job Adverts.docx"

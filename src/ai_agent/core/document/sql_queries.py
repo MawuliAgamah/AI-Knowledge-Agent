@@ -19,6 +19,7 @@ SAVE_DOCUMENT_IN_LIBRARY = """
     INSERT INTO library (
         file_path,
         chunks_json,
+        no_of_chunks,
         title,
         document_type,
         summary,
