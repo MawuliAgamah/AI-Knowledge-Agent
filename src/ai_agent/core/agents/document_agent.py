@@ -5,14 +5,24 @@ from typing import List
 #    pydantic_v1,
 #    Field
 # )
+import os
 
 from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 from langchain_core import prompts, output_parsers, pydantic_v1
 from langchain.chains.llm import LLMChain
 
 from ai_agent.core.log import logger
+from ai_agent.core.config.config import config
+from dotenv import load_dotenv
 
 
+# from pathlib import Path
+# import logging
+# from log import logger
+# import sys
+
+load_dotenv()
 # import sys
 # sys.path.append("..")
 
@@ -90,7 +100,8 @@ class DocumentAgent:
     def __init__(self, config, model, llm):
         self.config = config
         self.model = model
-        self.llm = llm
+        #self.llm = ChatOllama(model = self.model, api_key=os.getenv("OPENAI_API_KEY"))
+        self.llm = ChatOllama(model = 'llama3.2:latest')
         logger.info("\033[1;37mDocument Agent Initialised\033[0m \n")
 
     # def map_reduce(self, map_prompt, reduce_prompt):
@@ -103,8 +114,9 @@ class DocumentAgent:
         """
         ..
         """
-
-        llm = self.llm(model=self.model, api_key=self.config['api_key'])
+    
+        # llm = self.llm(model=self.model, api_key=self.config['api_key'])
+        llm =  self.llm
         output = LLMChain(prompt=prompt, llm=llm)
         logger.info(f"{output}")
         return output
@@ -114,8 +126,8 @@ class DocumentAgent:
         ..
         """
         parser = output_parsers.JsonOutputParser(pydantic_object=MetaData)
-        llm = ChatOpenAI(model=self.model, api_key=self.config['api_key'])
-        chain = meta_data_prompt | llm | parser
+       
+        chain = meta_data_prompt | self.llm | parser
         output = chain.invoke(
             {
                 "chunk": chunk,

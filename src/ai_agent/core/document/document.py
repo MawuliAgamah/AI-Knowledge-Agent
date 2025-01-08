@@ -389,7 +389,6 @@ class DocumentBuilder:
         # Create prompt template for summarization
         prompt = ChatPromptTemplate.from_template("Summarize this content: {context}")
     
-        
         # Create the chain using the actual LLM
         chain = create_stuff_documents_chain(actual_llm, prompt)
         
@@ -447,7 +446,7 @@ class DocumentPipeline:
         self.llm = llm
         self.db = db
 
-    def _persist(self,document_object):
+    def save_document_to_db(self,document_object):
         """Store the contents of the document object to SQL Lite DB"""
         exists = False #self.db.doc_exists()
         created = False #self.doc_created()
@@ -491,9 +490,9 @@ class DocumentPipeline:
         
         if persist:
             print("Saving document")
+            self.save_document_to_db(document)
         else:
             print("Persit = False, document not saved")
-        #    self._persist(document)
         return document
 
 

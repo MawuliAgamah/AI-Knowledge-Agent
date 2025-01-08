@@ -5,6 +5,7 @@ License:
 """
 from dataclasses import dataclass
 from typing import List, Optional, Any
+import build
 from langchain_openai import ChatOpenAI
 # from pathlib import Path
 from ai_agent.core.utils import chroma_utils
@@ -150,21 +151,24 @@ def create_module(vector_db_path: str,
                           reset_db=reset_db)
     return AgentModule(configuration=configuraton, database=vs)
 
+from ai_agent.core.document.document import build_document
 
 def test_run(path_to_note):
     """
     Testing
     """
+    build
 
-    agent = create_module(
-        vector_db_path="/Users/mawuliagamah/utilities/chroma",
-        collection="obsidan_databse",
-        model_name="gpt-3.5-turbo",
-        reset_db=True
-        )
 
-    agent = agent.parse_document(path_to_document=path_to_note)
-    agent.embed(collection_name="obsidan_databse")
+    #agent = create_module(
+    #    vector_db_path="/Users/mawuliagamah/utilities/chroma",
+    #    collection="obsidan_databse",
+    #    model_name="gpt-3.5-turbo",
+    #    reset_db=True
+    #    )
+
+    #agent = agent.parse_document(path_to_document=path_to_note)
+    #agent.embed(collection_name="obsidan_databse")
 
     # agent.query("What are my knowledge gaps in graph neural networks?")
 
