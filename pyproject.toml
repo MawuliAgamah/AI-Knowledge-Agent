@@ -10,6 +10,8 @@ dependencies = [
 'langchain',
 'gensim',
 'nltk',
+'llama_index',
+'llama-index-vector-stores-chroma',
 'unstructured[md]',
 'chromadb',
 'onnxruntime==1.15.0'
