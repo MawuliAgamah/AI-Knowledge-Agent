@@ -16,8 +16,8 @@ docs/
 *.egg-info/
 
 
-core/agents/archive/
-notebooks/
+**/archive/
+**/notebooks/
 
 opensource/
 

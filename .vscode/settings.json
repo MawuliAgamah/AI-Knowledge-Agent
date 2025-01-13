@@ -1,8 +1,0 @@
-{
-    "python.analysis.extraPaths": [
-        "/Users/mawuliagamah/gitprojects/ai_module/src",
-        "./src/ai_agent/core"
-    ],
-    "python.analysis.autoImportCompletions": true,
-    "python.analysis.typeCheckingMode": "standard"
-}
