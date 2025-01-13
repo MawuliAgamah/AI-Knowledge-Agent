@@ -16,6 +16,9 @@ from ai_agent.core.log import logger
 from ai_agent.core.config.config import config
 from dotenv import load_dotenv
 
+from rich.console import Console
+console = Console()
+
 
 # from pathlib import Path
 # import logging
@@ -120,6 +123,69 @@ class DocumentAgent:
         output = LLMChain(prompt=prompt, llm=llm)
         logger.info(f"{output}")
         return output
+
+    def generate_document_summary(self,document_object):
+        from langchain.chains.combine_documents import create_stuff_documents_chain
+        from langchain_core.prompts import ChatPromptTemplate
+
+        """
+        Generate a summary of the document using language model.
+        
+        params
+        ------
+        document_object : object
+            document object which stores a document, and related meta data.
+        
+        llm : object
+            language model used to summarise the document.
+        
+        returns
+        ------
+        The document object.
+        """
+        from langchain.chains.combine_documents import create_stuff_documents_chain
+        from langchain_core.prompts import ChatPromptTemplate
+        
+        # Extract the actual LLM from the DocumentAgent
+        actual_llm = self.llm
+        
+        # Create prompt template for summarization
+        prompt = ChatPromptTemplate.from_template("Summarize this content: {context}")
+    
+        # Create the chain using the actual LLM
+        chain = create_stuff_documents_chain(actual_llm, prompt)
+        
+        # Get the chunked document
+        chunks = document_object.get_contents("chunked_document")
+        
+        try:
+            # Generate summary using the chain - note the changed input format
+            document_summary = chain.invoke({
+                "context": chunks
+            })
+            
+            # The result might be in a different format now, so let's handle that
+            if isinstance(document_summary, dict):
+                summary_text = document_summary.get('output', '')
+            else:
+                summary_text = str(document_summary)
+            
+            # Update the document summary
+            document_object = document_object.update(
+                "summary", payload=summary_text
+            )
+            
+            console.print("[bold green]✓[/bold green] Document summary generated")
+            return document_object
+            
+        except Exception as e:
+            console.print(f"[bold red]Error generating summary: {str(e)}[/bold red]")
+            raise
+
+
+    def generate_document_title(self,document_object):
+        """Generate the documents title"""
+        pass 
 
     def make_metadata(self, chunk):
         """
