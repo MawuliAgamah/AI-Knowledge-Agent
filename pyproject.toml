@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
 'langchain_openai',
+'langchain-ollama',
 'langchain-community',
 'langchain',
 'gensim',

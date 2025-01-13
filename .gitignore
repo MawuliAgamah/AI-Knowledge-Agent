@@ -15,6 +15,11 @@ docs/
 /src/ai_module.egg-info/
 *.egg-info/
 
+
+/src/ai_agent/core/agents/archive/
+/src/ai_agent/notebooks/
+
 opensource/
 
 developer.md
+
