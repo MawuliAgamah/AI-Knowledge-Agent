@@ -16,8 +16,8 @@ docs/
 *.egg-info/
 
 
-/src/ai_agent/core/agents/archive/
-/src/ai_agent/notebooks/
+core/agents/archive/
+notebooks/
 
 opensource/
 
