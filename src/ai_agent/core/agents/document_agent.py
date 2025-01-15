@@ -1,11 +1,7 @@
-"""To add .."""
+"""Agent responsible for populating a document agent"""
+import os
 from typing import List
 
-# from langchain_core.pydantic_v1 import (
-#    pydantic_v1,
-#    Field
-# )
-import os
 
 from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
@@ -187,9 +183,9 @@ class DocumentAgent:
         """Generate the documents title"""
         pass 
 
-    def make_metadata(self, chunk):
+    def make_chunk_metadata(self, chunk):
         """
-        ..
+        Generate metadata for each chunk
         """
         parser = output_parsers.JsonOutputParser(pydantic_object=MetaData)
        

@@ -42,14 +42,11 @@ from ai_agent.core.document.sql_queries import (CREATE_LIBRARY_TABLE,
                                                 SAVE_DOCUMENT_IN_LIBRARY,DOCUMENT_EXISTS_QUERY)
 
 from rich.console import Console
-console = Console()
 
 from ai_agent.core.document.sqldb import DocumentSQL
 from ai_agent.core.document.template import Document
     
- 
-# Define all imports which are used by the class below
-
+console = Console()
 
 class DocumentBuilder:
     """Construct Document Object"""
@@ -72,6 +69,9 @@ class DocumentBuilder:
         document_template = self.document.set(path=path)
         console.print("[bold green]✓[/bold green] created document template")
         return document_template
+
+    def check_contents(self,document_object):
+        """Look at the contents of the document. If it is empty, then skip the document"""
 
     def create_hash(self,document_object):
         from hashlib import sha256
@@ -168,7 +168,8 @@ class DocumentBuilder:
         chunk_list = []
         for idx, chunk in enumerate(chunks):
             logger.info(f"Chunk : {idx}")
-            metadata = llm.make_metadata(chunk)
+            # LLM Creates meta_data for each chunk. Need to make this more 
+            metadata = llm.make_chunk_metadata(chunk)
             chunk_store = {
                 "chunk": chunk,
                 "metadata": {
@@ -187,6 +188,7 @@ class DocumentBuilder:
                     payload=chunk_store
                 )
             )
+        # calculate the number of chunks and add that to the docuent object 
         document_object = (
         document_object
         .update(
@@ -197,7 +199,6 @@ class DocumentBuilder:
             
 
         return document_object
-
 
     def generate_summary(self, document_object, llm):
         """
@@ -242,6 +243,7 @@ class DocumentBuilder:
             else:
                 summary_text = str(document_summary)
             
+
             # Update the document summary
             document_object = document_object.update(
                 "summary", payload=summary_text
@@ -261,25 +263,28 @@ class DocumentBuilder:
             )
             return document_object
 
-    def generate_meta_data(self, document_object_llm):
-        """
-
-        """
-        pass
-
 
 class DocumentPipeline:
-    """
-    Class that serves as a higher level orchestrator.
-    Uses the document builder to perform a sequence of operations
-    on a document objec to construct a document for insertion
-    into a  vector database.
-    attr
-    ----
-    document_builder : object
-
-    llm : object
-
+    """Orchestrates the document processing pipeline, to save raw files to postgres db ready to load into vector db.
+    
+    This pipeline manages the end-to-end process of document processing, including:
+    - Document loading and parsing
+    - Text preprocessing and chunking
+    - Summary and metadata generation using LLMs
+    - Database storage and deduplication
+    
+    Attributes:
+        document_builder: Handles individual document processing operations
+        llm: Language model for generating summaries and metadata
+        db: Database connection for document storage
+    
+    Example:
+        pipeline = DocumentPipeline(
+            document_builder=DocBuilder(),
+            llm=OpenAIAgent(),
+            db=VectorDB()
+        )
+        doc = pipeline.build_document("path/to/doc.pdf", persist=True)
     """
 
     def __init__(self, document_builder, llm, db):
@@ -296,53 +301,35 @@ class DocumentPipeline:
             self.db.save_document(document_object)
 
     def build_document(self, path_to_document,persist):
-        """
-        Sequence of operations to build 
-        a full document given the path to
-        the document.
-
-        params
-        ------
-        path_to_document : str
-        path to the document on file
-        """
-        # Check if the document has already been created:
-         
-
-        document_template = self.document_builder.create_template(path=path_to_document)
-        hashed_document = self.document_builder.create_hash(document_object=document_template)
-        
-        document = (
-            self.document_builder
-            .load_doc_into_langchain(document_object=hashed_document)
-        )
+        """Sequence of operations to build a full document given the path to the document."""
+        document = self.document_builder.create_template(path=path_to_document)
+        document = self.document_builder.create_hash(document_object=document)
+        document = self.document_builder.load_doc_into_langchain(document_object=document)
         document = self.document_builder.pre_process(document_object=document)
-        document = self.document_builder.chunk_document(
-            document_object=document)
-        # Create the document summary using a language model
-        document = self.document_builder.generate_summary(
-            document_object=document, llm=self.llm)
-        # Create the document summary using a language model
-        document = self.document_builder.add_chunks(
-            document_object=document, llm=self.llm)
-        document = self.document_builder.generate_title(
-            document_object = document, llm =self.llm )
-        if persist:
-            print("Saving document")
-            self.save_document_to_db(document)
-        else:
-            print("Persit = False, document not saved")
+        document = self.document_builder.chunk_document(document_object=document)
+        document = self.document_builder.generate_summary(document_object=document, llm=self.llm)
+        document = self.document_builder.add_chunks(document_object=document, llm=self.llm)
+        document = self.document_builder.generate_title(document_object = document, llm =self.llm )
+        self.save_document_to_db(document)
         return document
 
 
+def create_doc_builder(path):
+        from langchain.text_splitter import RecursiveCharacterTextSplitter
+        """create an instanstiated document builder obejct"""
+        doc_builder = DocumentBuilder(
+            document = Document(),
+            loader_docx=Docx2txtLoader(path),
+            loader_md=UnstructuredMarkdownLoader(path),
+            lemmetizer=WordNetLemmatizer(),
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=5)
+            )
+        return doc_builder
+
+
 def build_document(path,meta_data = None,persist = True):
-    from langchain.text_splitter import RecursiveCharacterTextSplitter
     """Main Function to build a whole document"""
-    doc_builder = DocumentBuilder(document = Document(),
-                                  loader_docx=Docx2txtLoader(path),
-                                  loader_md=UnstructuredMarkdownLoader(path),
-                                  lemmetizer=WordNetLemmatizer(),
-                                  text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=5))
+    doc_builder = create_doc_builder(path = path)
 
     # will need to refactor this 
     document_agent = DocumentAgent(config=config,llm = ChatOllama(model ='llama3.2:latest'), model = 'llama3.2:latest')
@@ -356,29 +343,19 @@ def build_document(path,meta_data = None,persist = True):
         db = sql_db
         )
     )
-    from time import sleep
     with console.status("[bold blue] Building document", spinner="dots") as status:
-
         document = doc_pipeline.build_document(path_to_document=path, persist=persist)
         status.update("[bold red] saving document")
         doc_pipeline.save_document_to_db(document)
         status.update("[bold red] Finished ")
-    
     return document
 
 
 from pprint import pprint
 def test_run():
     """Test Module"""
-    import os 
-    path = os.path.join(
-            "/Users/mawuliagamah/obsidian vaults",
-            "Software Company/Learning/Machine Learning",
-            "Graph Neural Networks.md"
-        )
-    
-    document = build_document(path = path, meta_data=None ,persist=True)
-
+    import os     
+    document = build_document(path = '/Users/mawuliagamah/obsidian vaults/Software Company/BookShelf/Books/The Art of Doing Science and Engineering.md', meta_data=None ,persist=True)
     pprint(document.contents)
     
 # self._init_db()
@@ -396,16 +373,6 @@ def init_db():
 
 
 if __name__ == "__main__":
-    init_db()
+    # init_db()
     test_run()
 
-
-#    path = "/Users/mawuliagamah/gitprojects/STAR/data/documents/word/Job Adverts.docx"
-
-#    document_builder = DocumentBuilder()
-#    document_agent = DocumentAgent(config=config)
-
-#    pipeline = DocumentPipeline(document_builder = document_builder ,llm = document_agent)
-#    document_object = pipeline.build_document(path_to_document = path)
-
-#    print(document_object.contents)

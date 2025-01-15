@@ -68,6 +68,7 @@ class AgentModule:
             raise ValueError(f"Unsupported RAG type: {self.config.rag_type}")
 
     def _initialise_with_vector_rag(self) -> None:
+        from ai_agent.core.document.document import create_doc_builder
         """Set up AI agent with vector based rag"""
         # ----------------------------------
         # 1. initialise vector
@@ -87,11 +88,12 @@ class AgentModule:
         # ----------------------------------
         # initialise builders
         # ----------------------------------
-        document_builder = DocumentBuilder()
+
         self.document_parser = (
             DocumentPipeline(
                 document_builder=document_builder,
-                llm=self.document_agent
+                llm=self.document_agent,
+                db = '/Users/mawuliagamah/gitprojects/aiModule/databases/sql_lite/document_db.db'
             )
         )
 
@@ -131,7 +133,7 @@ class AgentModule:
     #    return response
 
 
-def create_module(vector_db_path: str,
+def create_agent(vector_db_path: str,
                   collection: str,
                   model_name: str = "gpt-3.5-turbo",
                   rag_type: str = "vector",
@@ -157,7 +159,7 @@ def test_run(path_to_note):
     """
     Testing
     """
-    build
+
 
 
     #agent = create_module(
