@@ -132,9 +132,7 @@ class VectorStore:
     Interface to interact with the vector stor
        methods:
         add_document()
-
         query_data_base()
-
     """
     def __init__(self, client, config, engine, collection, reset_client=True):
         self.config = config
@@ -176,6 +174,10 @@ def initialise_vector_store(path_to_chroma_db, collection, collection_name):
                              collection=collection))
     console.print("[bold green]✓[/bold green] Chroma DB Initialised ")
     return vec_store
+
+
+def add_documents_to_vector_db():
+    pass 
 
 
 def test_run():

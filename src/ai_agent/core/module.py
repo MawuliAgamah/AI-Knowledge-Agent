@@ -14,7 +14,8 @@ from ai_agent.core.agents.document_agent import DocumentAgent
 from ai_agent.core.config.config import config
 from ai_agent.core.document.document import (
     DocumentPipeline,
-    DocumentBuilder
+    DocumentBuilder,
+    build_document
 )
 
 # Handles everything related to interacting with the database
@@ -85,41 +86,23 @@ class AgentModule:
             model=self.config.model_name,
             llm=ChatOpenAI
         )
-        # ----------------------------------
-        # initialise builders
-        # ----------------------------------
 
-        self.document_parser = (
-            DocumentPipeline(
-                document_builder=document_builder,
-                llm=self.document_agent,
-                db = '/Users/mawuliagamah/gitprojects/aiModule/databases/sql_lite/document_db.db'
-            )
-        )
 
-    def parse_document(self, path_to_document: List['str']):
-        """For a list of paths to document,
-           build the agents internal document Model
-        """
+    def load_documents(self, path_to_document: List['str']):
+        """For a list of paths to document"""
         for doc_path in path_to_document:
-            try:
-                document = self.document_parser \
-                    .build_document(path_to_document=doc_path)  # type: ignore
-                self.parsed_documents.append(document)
-                print("Document Parsed and Stored in List")
-                print(document.contents['summary'])
-            except Exception as e:  # pylint: disable=broad-except
-                print(f"Error parsing document {doc_path}: {str(e)}")
+            build_document(path = path_to_document)
         return self
 
     def embed(self,collection_name):
         """Embed the parsed documents in vector db"""
         # collection = self.config.collection
-        for doc in self.parsed_documents:
-            self.database = (self.database
-                             .add_document(document_object=doc,  # type: ignore
-                                           collecton_name=collection_name,
-                                           doc_type="docx"))
+        #for doc in self.parsed_documents:
+        #    self.database = (self.database
+        #                     .add_document(document_object=doc,  # type: ignore
+        #                                   collecton_name=collection_name,
+        #                                   doc_type="docx"))
+        
         return self
 
     #
@@ -133,7 +116,9 @@ class AgentModule:
     #    return response
 
 
-def create_agent(vector_db_path: str,
+def create_agent( 
+        sql_db:str,
+        vector_db_path: str,
                   collection: str,
                   model_name: str = "gpt-3.5-turbo",
                   rag_type: str = "vector",
@@ -156,10 +141,16 @@ def create_agent(vector_db_path: str,
 from ai_agent.core.document.document import build_document
 
 def test_run(path_to_note):
-    """
-    Testing
-    """
-
+    agent = create_agent(
+        sql_db='/Users/mawuliagamah/gitprojects/aiModule/databases/sql_lite/document_db.db',
+        vector_db_path="/Users/mawuliagamah/utilities/chroma/chroma.sqlite3",
+        collection="obsidan_databse",
+        model_name="gpt-3.5-turbo",
+        reset_db=True
+        )
+    
+    agent = agent.load_documents(path_to_document=['/Users/mawuliagamah/obsidian vaults/Software Company/BookShelf/Books/The Art of Doing Science and Engineering.md'])
+    agent.embed()
 
 
     #agent = create_module(

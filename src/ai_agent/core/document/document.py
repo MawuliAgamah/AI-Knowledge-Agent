@@ -10,10 +10,7 @@ from dataclasses import dataclass
 
 # from tqdm import tqdm
 from langchain.chains import MapReduceDocumentsChain, ReduceDocumentsChain
-from langchain_community.document_loaders import (
-    Docx2txtLoader,
-    UnstructuredMarkdownLoader
-)
+
 
 # from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
@@ -313,9 +310,12 @@ class DocumentPipeline:
         self.save_document_to_db(document)
         return document
 
-
 def create_doc_builder(path):
         from langchain.text_splitter import RecursiveCharacterTextSplitter
+        from langchain_community.document_loaders import (
+            Docx2txtLoader,
+            UnstructuredMarkdownLoader
+        )
         """create an instanstiated document builder obejct"""
         doc_builder = DocumentBuilder(
             document = Document(),
@@ -351,15 +351,15 @@ def build_document(path,meta_data = None,persist = True):
     return document
 
 
-from pprint import pprint
+
 def test_run():
+    from pprint import pprint
+    import os
     """Test Module"""
-    import os     
-    document = build_document(path = '/Users/mawuliagamah/obsidian vaults/Software Company/BookShelf/Books/The Art of Doing Science and Engineering.md', meta_data=None ,persist=True)
+    path =   '/Users/mawuliagamah/obsidian vaults/Software Company/BookShelf/Books/The Art of Doing Science and Engineering.md'
+    document = build_document(path = path, meta_data=None ,persist=True)
     pprint(document.contents)
     
-# self._init_db()
-
 def init_db():
     """Initialised the data base. Creates on if it doesn't exist"""
     db_path = '/Users/mawuliagamah/gitprojects/aiModule/databases/sql_lite/document_db.db'
@@ -370,9 +370,6 @@ def init_db():
         conn.commit()
     console.print(f"[bold green]✓[/bold green] document db created at : {db_path}")
 
-
-
 if __name__ == "__main__":
-    # init_db()
     test_run()
 
