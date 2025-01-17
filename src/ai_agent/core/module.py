@@ -87,7 +87,6 @@ class AgentModule:
             llm=ChatOpenAI
         )
 
-
     def load_documents(self, path_to_document: List['str']):
         """For a list of paths to document"""
         for doc_path in path_to_document:

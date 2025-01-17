@@ -5,6 +5,7 @@ Script which handles everything related to processing to be embedded.
 # import sys
 # import glob
 from operator import imod
+from pydoc import text
 import sqlite3
 from dataclasses import dataclass
 
@@ -44,6 +45,16 @@ from ai_agent.core.document.sqldb import DocumentSQL
 from ai_agent.core.document.template import Document
     
 console = Console()
+
+class DocumentChunker:
+    """Tools used by the doc builder"""    
+    def __init__(self,text_splitter):
+        self.text_splitter = text_splitter
+
+    def chunk(self,document):
+        """Different chunking strategies"""
+        pass 
+
 
 class DocumentBuilder:
     """Construct Document Object"""
@@ -152,7 +163,7 @@ class DocumentBuilder:
         return document_object
 
     def add_chunks(self, document_object, llm):
-        """Insert the chunks intot the document object """
+        """Insert the chunks into the document object """
 
         chunks = document_object.get_contents("chunked_document")
         document_summary = document_object.get_contents("summary")
@@ -255,13 +266,14 @@ class DocumentBuilder:
 
     def generate_title(self,document_object,llm):
             title = 'working on titles'
+
             document_object = document_object.update(
                 contents = "title", payload=title
             )
             return document_object
 
 
-class DocumentPipeline:
+class DocumentProcessor:
     """Orchestrates the document processing pipeline, to save raw files to postgres db ready to load into vector db.
     
     This pipeline manages the end-to-end process of document processing, including:
@@ -336,17 +348,17 @@ def build_document(path,meta_data = None,persist = True):
     sql_db = DocumentSQL()
     
     # pipeline to build out a document 
-    doc_pipeline = (
-        DocumentPipeline(
+    processor = (
+        DocumentProcessor(
         document_builder=doc_builder, 
         llm = document_agent,
         db = sql_db
         )
     )
     with console.status("[bold blue] Building document", spinner="dots") as status:
-        document = doc_pipeline.build_document(path_to_document=path, persist=persist)
+        document = processor.build_document(path_to_document=path, persist=persist)
         status.update("[bold red] saving document")
-        doc_pipeline.save_document_to_db(document)
+        processor.save_document_to_db(document)
         status.update("[bold red] Finished ")
     return document
 
@@ -357,7 +369,7 @@ def test_run():
     import os
     """Test Module"""
     path =   '/Users/mawuliagamah/obsidian vaults/Software Company/BookShelf/Books/The Art of Doing Science and Engineering.md'
-    document = build_document(path = path, meta_data=None ,persist=True)
+    document = build_document(path = path, meta_data=None ,persist=False)
     pprint(document.contents)
     
 def init_db():

@@ -2,17 +2,19 @@
 import os
 from typing import List
 
-
+from click import Option
 from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
 from langchain_core import prompts, output_parsers, pydantic_v1
 from langchain.chains.llm import LLMChain
 
 from ai_agent.core.log import logger
-from ai_agent.core.config.config import config
+from ai_agent.core.config.config import config, OllamaConfig
 from dotenv import load_dotenv
 
 from rich.console import Console
+
+
 console = Console()
 
 
@@ -86,6 +88,22 @@ class MetaData(pydantic_v1.BaseModel):
                         """)
 
 
+
+class DocumentAgentUtilities:
+    """Utiliy class for the Agent to use. Allows us to make the code base modular"""
+
+    def __init__(self) -> None:
+        pass
+
+    def doc_summary_by_map_reduce(self,document):
+        pass
+
+    def doc_summary_by_clustering(self,document):
+        """Generates a document summary using the clustering method"""
+        print(document)
+
+
+from typing import Optional
 class DocumentAgent:
     """
     Class creates a large language model used within the document pipeline
@@ -96,34 +114,27 @@ class DocumentAgent:
     dictionairy storing all of the configuration for the language model.
     """
 
-    def __init__(self, config, model, llm):
+    def __init__(self, config, model = None, llm = None, utils:Optional[DocumentAgentUtilities] = None):
         self.config = config
-        self.model = model
-        #self.llm = ChatOllama(model = self.model, api_key=os.getenv("OPENAI_API_KEY"))
-        self.llm = ChatOllama(model = 'llama3.2:latest')
-        logger.info("\033[1;37mDocument Agent Initialised\033[0m \n")
-
-    # def map_reduce(self, map_prompt, reduce_prompt):
-    #    """
-    #    ...
-    #    """
-        # return map_reduce_output
+        self.utils = utils
+        # self.model = model
+        #self.llm = ChatOllama(model = 'llama3.2:latest')
+        # self.utils = utils
 
     def llm_chain(self, prompt):
-        """
-        ..
-        """
-    
-        # llm = self.llm(model=self.model, api_key=self.config['api_key'])
-        llm =  self.llm
+        llm =  self.config.llm
         output = LLMChain(prompt=prompt, llm=llm)
         logger.info(f"{output}")
         return output
 
+
     def generate_document_summary(self,document_object):
+        self.utils.doc_summary_by_clustering(document_object) # type: ignore
+        
+
+    def generate_document_summary_old(self,document_object):
         from langchain.chains.combine_documents import create_stuff_documents_chain
         from langchain_core.prompts import ChatPromptTemplate
-
         """
         Generate a summary of the document using language model.
         
@@ -143,13 +154,13 @@ class DocumentAgent:
         from langchain_core.prompts import ChatPromptTemplate
         
         # Extract the actual LLM from the DocumentAgent
-        actual_llm = self.llm
+        chat_model = self.config.llm
         
         # Create prompt template for summarization
         prompt = ChatPromptTemplate.from_template("Summarize this content: {context}")
     
         # Create the chain using the actual LLM
-        chain = create_stuff_documents_chain(actual_llm, prompt)
+        chain = create_stuff_documents_chain(chat_model, prompt)
         
         # Get the chunked document
         chunks = document_object.get_contents("chunked_document")
@@ -183,13 +194,14 @@ class DocumentAgent:
         """Generate the documents title"""
         pass 
 
+
     def make_chunk_metadata(self, chunk):
         """
         Generate metadata for each chunk
         """
         parser = output_parsers.JsonOutputParser(pydantic_object=MetaData)
        
-        chain = meta_data_prompt | self.llm | parser
+        chain = meta_data_prompt | self.config.llm | parser
         output = chain.invoke(
             {
                 "chunk": chunk,
@@ -199,4 +211,15 @@ class DocumentAgent:
 
 
 
-# DocumentAgent(llm = ChatOpenAI)
+if __name__ == "__main__":
+    
+    model_utils = DocumentAgentUtilities()
+    config = OllamaConfig() 
+
+    doc_agent = DocumentAgent(config=config, 
+                              utils=model_utils)
+
+    path =   '/Users/mawuliagamah/obsidian vaults/Software Company/BookShelf/Books/The Art of Doing Science and Engineering.md'
+    document = path
+    doc_agent.generate_document_summary(document)
+
