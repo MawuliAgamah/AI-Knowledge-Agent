@@ -64,6 +64,7 @@ class DocumentBuilder:
                 loader_md,
                 lemmetizer,
                 text_splitter,
+                agent,
                 ):
         self.name = "word document builder"
         self.document = document
@@ -71,6 +72,7 @@ class DocumentBuilder:
         self.loader_md = loader_md
         self.lemmetizer = lemmetizer
         self.text_splitter = text_splitter
+        self.agent = agent 
    
     def create_template(self, path):
         """Initialise the document object setting the documents path attribute as the path."""
@@ -209,55 +211,13 @@ class DocumentBuilder:
         return document_object
 
     def generate_summary(self, document_object, llm):
-        """
-        Generate a summary of the document using language model.
-        
-        params
-        ------
-        document_object : object
-            document object which stores a document, and related meta data.
-        
-        llm : object
-            language model used to summarise the document.
-        
-        returns
-        ------
-        The document object.
-        """
-        from langchain.chains.combine_documents import create_stuff_documents_chain
-        from langchain_core.prompts import ChatPromptTemplate
-        
-        # Extract the actual LLM from the DocumentAgent
-        actual_llm = llm.llm
-        
-        # Create prompt template for summarization
-        prompt = ChatPromptTemplate.from_template("Summarize this content: {context}")
-    
-        # Create the chain using the actual LLM
-        chain = create_stuff_documents_chain(actual_llm, prompt)
-        
+        """Generate a summary of the document using language model."""
+
         # Get the chunked document
         chunks = document_object.get_contents("chunked_document")
         
         try:
-            # Generate summary using the chain - note the changed input format
-            document_summary = chain.invoke({
-                "context": chunks
-            })
             
-            # The result might be in a different format now, so let's handle that
-            if isinstance(document_summary, dict):
-                summary_text = document_summary.get('output', '')
-            else:
-                summary_text = str(document_summary)
-            
-
-            # Update the document summary
-            document_object = document_object.update(
-                "summary", payload=summary_text
-            )
-            
-            console.print("[bold green]✓[/bold green] Document summary generated")
             return document_object
             
         except Exception as e:
@@ -322,19 +282,27 @@ class DocumentProcessor:
         self.save_document_to_db(document)
         return document
 
+from ai_agent.core.agents.document_agent import DocumentAgent
+from ai_agent.core.config.config import OllamaConfig
+from ai_agent.core.agents.document_agent import DocumentAgentUtilities
+
 def create_doc_builder(path):
         from langchain.text_splitter import RecursiveCharacterTextSplitter
         from langchain_community.document_loaders import (
             Docx2txtLoader,
             UnstructuredMarkdownLoader
         )
+        config = OllamaConfig() 
+        model_utils = DocumentAgentUtilities()
+        
         """create an instanstiated document builder obejct"""
         doc_builder = DocumentBuilder(
             document = Document(),
             loader_docx=Docx2txtLoader(path),
             loader_md=UnstructuredMarkdownLoader(path),
             lemmetizer=WordNetLemmatizer(),
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=5)
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=5),
+            agent = DocumentAgent(config=config, utils=model_utils)
             )
         return doc_builder
 

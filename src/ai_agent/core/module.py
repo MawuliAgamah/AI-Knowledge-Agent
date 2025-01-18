@@ -13,7 +13,7 @@ from ai_agent.core.vector_store.vector_db import initialise_vector_store
 from ai_agent.core.agents.document_agent import DocumentAgent
 from ai_agent.core.config.config import config
 from ai_agent.core.document.document import (
-    DocumentPipeline,
+    DocumentProcessor,
     DocumentBuilder,
     build_document
 )
