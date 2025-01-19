@@ -2,17 +2,11 @@
 import os
 from typing import List
 
-from click import Option
 from langchain_openai import ChatOpenAI
-from langchain_ollama import ChatOllama
 from langchain_core import prompts, output_parsers
 from pydantic import BaseModel
-from langchain.chains.llm import LLMChain
 
-from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
-
-from ai_agent.core.log import logger
 from ai_agent.core.config.config import config, OllamaConfig
 from dotenv import load_dotenv
 
@@ -191,15 +185,18 @@ class DocumentAgentUtilities:
             return None
 
     def doc_summary_by_map_reduce_thread_pool(self, llm, chunks):
+        """Process Document using the ThreadPool Executor"""
         from langchain_core.output_parsers import StrOutputParser
         from langchain_core.prompts import ChatPromptTemplate
-        from concurrent.futures import ThreadPoolExecutor
+        from concurrent.futures import ProcessPoolExecutor,as_completed
         import multiprocessing
         import time
             
+        print('threadpool map reduce')
         # Map prompt (summarizing individual chunks)
         map_prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a precise summarizer focused on extracting key concepts and information that would be valuable for retrieval augmented generation (RAG).
+            ("system", """
+             You are a precise summarizer focused on extracting key concepts and information that would be valuable for retrieval augmented generation (RAG).
             Focus on:
             - Main concepts and their relationships
             - Key terminology and definitions
@@ -219,21 +216,9 @@ class DocumentAgentUtilities:
 
         # Reduce prompt (combining summaries)
         reduce_prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a expert at synthesizing information for RAG systems. Your goal is to create a comprehensive summary that:
-            - Maintains semantic richness for vector similarity matching
-            - Preserves key terminology and specific details
-            - Creates clear thematic connections
-            - Structures information in a retrievable way"""),
-            ("human", """Synthesize these summaries into a single coherent summary optimized for RAG retrieval:
-
-        Summaries: {summaries}
-
-        Create a final summary that:
-        1. Preserves specific terminology and key concepts
-        2. Maintains relationships between ideas
-        3. Structures information in clear thematic sections
-        4. Keeps concrete examples and specific details""")
-        ])
+            ("system", """You are a expert at synthesizing information for RAG systems. Your goal is to create a comprehensive summary that is 
+             no longer than one sentence."""),
+            ("human", """Synthesize these summaries into a single coherent summary optimized for RAG retrieval. Summaries: {summaries}s""")])
         # Create map chain
         map_chain = map_prompt | llm | StrOutputParser()
         # Create reduce chain
@@ -247,16 +232,107 @@ class DocumentAgentUtilities:
         cpu_count = multiprocessing.cpu_count()
         optimal_workers = cpu_count - 1 
 
-        print('Workers:', optimal_workers)
-        with ThreadPoolExecutor(max_workers=optimal_workers) as executor:
-            # Create tuples of arguments (chunk, map_chain) for each chunk
-            summaries = list(executor.map(process_chunk,chunks))
-            print(f"Individual Summaries : {summaries} ")
-                
-            # Reduce: Combine all summaries
+        futures = []
+       
+        with ProcessPoolExecutor(max_workers=optimal_workers) as executor:
+            for chunk in chunks:
+
+                future = executor.submit(process_chunk, chunk)
+                futures.append(future)
+        
+        summaries = []
+        for future in as_completed(futures):
+            try:
+                result = future.result()
+                summaries.append(result)
+            except Exception as e:
+                print(f"An error occurred: {e}")
+
+        # Reduce: Combine all summaries
         final_summary = reduce_chain.invoke({"summaries": "\n\n".join(summaries)})
         print(f"Processing time: {time.time() - start_time:.2f} seconds")
         return final_summary
+
+
+    def doc_summary_by_map_reduce_multiprocess(self, llm, chunks):
+        """Process Document using Multiprocess"""
+        from langchain_core.output_parsers import StrOutputParser
+        from langchain_core.prompts import ChatPromptTemplate
+        import multiprocess as mp
+        import multiprocess.pool as mp_pool
+        import time
+
+        print('multiprocess map reduce')
+
+        # Map prompt (summarizing individual chunks)
+        map_prompt = ChatPromptTemplate.from_messages([
+            ("system", """
+            You are a precise summarizer focused on extracting key concepts and information that would be valuable for retrieval augmented generation (RAG).
+            Focus on:
+            - Main concepts and their relationships
+            - Key terminology and definitions
+            - Core arguments and supporting evidence
+            - Actionable insights and recommendations
+            Maintain factual accuracy and specific details that could be relevant for future queries."""),
+            ("human", """Analyze and summarize the following text, emphasizing elements that would be useful for future retrieval:
+            Text: {text}
+            Create a summary that:
+            1. Preserves specific terminology and key phrases
+            2. Maintains important context and relationships
+            3. Captures actionable insights and recommendations
+            4. Includes relevant examples or evidence""")
+        ])
+
+        # Reduce prompt (combining summaries)
+        reduce_prompt = ChatPromptTemplate.from_messages([
+            ("system", """You are a expert at synthesizing information for RAG systems. Your goal is to create a comprehensive summary that is 
+            no longer than one sentence."""),
+            ("human", """Synthesize these summaries into a single coherent summary optimized for RAG retrieval. Summaries: {summaries}s""")
+        ])
+
+        # Create chains
+        map_chain = map_prompt | llm | StrOutputParser()
+        reduce_chain = reduce_prompt | llm | StrOutputParser()
+
+        def process_chunk(chunk):
+            return map_chain.invoke({"text": chunk})
+
+        start_time = time.time()
+        import multiprocessing
+        cpu_count = multiprocessing.cpu_count()
+        optimal_workers = cpu_count - 1
+
+        print(f'Using {optimal_workers} workers')
+        
+        # Using Pool instead of ProcessPoolExecutor
+        with mp_pool.Pool(processes=optimal_workers) as pool:
+            try:
+                # Map phase - process all chunks
+                results = pool.map_async(process_chunk, chunks)
+                
+                # Wait for all results and get them
+                summaries = results.get()
+                
+                # Filter out any None results
+                summaries = [s for s in summaries if s is not None]
+                
+                if not summaries:
+                    raise ValueError("No valid summaries were generated")
+                
+                # Reduce phase
+                final_summary = reduce_chain.invoke({"summaries": "\n\n".join(summaries)})
+                
+            except Exception as e:
+                print(f"An error occurred: {str(e)}")
+                raise
+            finally:
+                pool.close()
+                pool.join()
+
+        print(f"Processing time: {time.time() - start_time:.2f} seconds")
+        return final_summary
+
+    
 
     def doc_summary_by_clustering(self,document):
         """Generates a document summary using the clustering method"""
@@ -277,7 +353,7 @@ class DocumentAgent:
     
     def generate_document_summary_threadpool(self, document_object):
         # summary = asyncio.run(self.utils.doc_summary_by_map_reduce_async(llm=self.config.llm, chunks=document_object)) # type: ignore
-        summary = self.utils.doc_summary_by_map_reduce_thread_pool(llm=self.config.llm, chunks=document_object) # type: ignore 
+        summary = self.utils.doc_summary_by_map_reduce_multiprocess(llm=self.config.llm, chunks=document_object) # type: ignore 
         print(summary)
         console.print("[bold green]✓[/bold green] Document summary generated")
         return summary
@@ -318,8 +394,8 @@ def quick_doc_loader(path):
     
     # Create text splitter
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=200  # Added some overlap for better context
+        chunk_size=500,
+        chunk_overlap=100  # Added some overlap for better context
     )
     
     # Split the documents - need to split documents, not text
