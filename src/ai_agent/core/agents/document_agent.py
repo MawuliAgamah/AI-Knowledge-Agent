@@ -10,6 +10,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from ai_agent.core.config.config import config, OllamaConfig , OpenAIConfig
 from dotenv import load_dotenv
 
+import asyncio
 from rich.console import Console
 
 
@@ -56,10 +57,13 @@ class DocumentAgentUtilities:
     def __init__(self,) -> None:
         pass
 
-    def doc_summary_by_map_reduce(self,llm,chunks):
+    def doc_summary_by_map_reduce(self, llm, chunks):
         from langchain_core.output_parsers import StrOutputParser
         from langchain_core.prompts import ChatPromptTemplate
-        
+        import time
+
+        start_time = time.time()
+
         # Map prompt (summarizing individual chunks)
         map_prompt = ChatPromptTemplate.from_messages([
             ("system", """You are a precise summarizer focused on extracting key concepts and information that would be valuable for retrieval augmented generation (RAG).
@@ -70,9 +74,7 @@ class DocumentAgentUtilities:
             - Actionable insights and recommendations
             Maintain factual accuracy and specific details that could be relevant for future queries."""),
             ("human", """Analyze and summarize the following text, emphasizing elements that would be useful for future retrieval:
-
         Text: {text}
-
         Create a summary that:
         1. Preserves specific terminology and key phrases
         2. Maintains important context and relationships
@@ -88,40 +90,54 @@ class DocumentAgentUtilities:
             - Creates clear thematic connections
             - Structures information in a retrievable way"""),
             ("human", """Synthesize these summaries into a single coherent summary optimized for RAG retrieval:
-
         Summaries: {summaries}
-
         Create a final summary that:
         1. Preserves specific terminology and key concepts
         2. Maintains relationships between ideas
         3. Structures information in clear thematic sections
         4. Keeps concrete examples and specific details""")
         ])
+
         # Create map chain
         map_chain = map_prompt | llm | StrOutputParser()
         # Create reduce chain
         reduce_chain = reduce_prompt | llm | StrOutputParser()
+
         # Map: Generate individual summaries for each chunk
+        map_start_time = time.time()
         summaries = []
         for chunk in chunks:
             summary = map_chain.invoke({"text": chunk})
             summaries.append(summary)
-        
+        map_duration = time.time() - map_start_time
+        print(f"✓ Map phase completed in {map_duration:.2f} seconds")
+
         # Reduce: Combine all summaries
+        reduce_start_time = time.time()
         final_summary = reduce_chain.invoke({"summaries": "\n\n".join(summaries)})
-        print(final_summary)
-        print("✓ Document summary generated")
+        reduce_duration = time.time() - reduce_start_time
+        
+        total_duration = time.time() - start_time
+        print(f"✓ Document summary generated")
+        print(f"Total execution time: {total_duration:.2f} seconds")
+        print(f"Map phase: {map_duration:.2f} seconds")
+        print(f"Reduce phase: {reduce_duration:.2f} seconds")
+        
         return final_summary
     
-    async def doc_summary_by_map_reduce_async(self,llm,chunks):
+    async def doc_summary_by_map_reduce_async(self, llm, chunks):
         from langchain_core.output_parsers import StrOutputParser
         from langchain_core.prompts import ChatPromptTemplate
         import asyncio
+        import time
+
+        start_time = time.time()
+
         # Map prompt (summarizing individual chunks)
         map_prompt = ChatPromptTemplate.from_messages([
             ("system", """You are a precise summarizer focused on extracting key concepts and information that would be valuable for retrieval augmented generation (RAG).
             Focus on:
-            - Main concepts and their relationships
+            - Main concepts and their relationships 
             - Key terminology and definitions
             - Core arguments and supporting evidence
             - Actionable insights and recommendations
@@ -151,13 +167,13 @@ class DocumentAgentUtilities:
         4. Keeps concrete examples and specific details.
         5. Ensure the summary is no longer that 2 sentences.""")
         ])
+
         # Create map chain
         map_chain = map_prompt | llm | StrOutputParser()
         # Create reduce chain
         reduce_chain = reduce_prompt | llm | StrOutputParser()
-        # Map: Generate individual summaries for each chunk
 
-        # Process chunk with error handling
+        # Map: Generate individual summaries for each chunk
         semaphore = asyncio.Semaphore(10)
         async def process_chunk(chunk):
             async with semaphore:  # Rate limiting
@@ -166,19 +182,29 @@ class DocumentAgentUtilities:
                 except Exception as e:
                     print(f"Error processing chunk: {e}")
                     return None
-                
+
+        map_start_time = time.time()
         tasks = [process_chunk(chunk) for chunk in chunks]
         summaries = await asyncio.gather(*tasks)
+        map_duration = time.time() - map_start_time
+        print(f"✓ Map phase completed in {map_duration:.2f} seconds")
 
         summaries = [s for s in summaries if s is not None]
-        
+
         # Combine summaries
         try:
+            reduce_start_time = time.time()
             final_summary = await reduce_chain.ainvoke(
                 {"summaries": "\n\n".join(summaries)}
             )
-            print(final_summary)
-            print("✓ Document summary generated")
+            reduce_duration = time.time() - reduce_start_time
+            
+            total_duration = time.time() - start_time
+            print(f"✓ Document summary generated")
+            print(f"Total execution time: {total_duration:.2f} seconds")
+            print(f"Map phase: {map_duration:.2f} seconds")
+            print(f"Reduce phase: {reduce_duration:.2f} seconds")
+            
             return final_summary
         except Exception as e:
             print(f"Error in reduce step: {e}")
@@ -352,10 +378,8 @@ class DocumentAgent:
         self.utils.doc_summary_by_map_reduce(llm = self.config.llm ,chunks=document_object) # type: ignore
     
     def generate_document_summary_threadpool(self, document_object):
-        import asyncio
         summary = asyncio.run(self.utils.doc_summary_by_map_reduce_async(llm=self.config.llm, chunks=document_object)) # type: ignore
         # summary = self.utils.doc_summary_by_map_reduce_multiprocess(llm=self.config.llm, chunks=document_object) # type: ignore 
-        print(summary)
         console.print("[bold green]✓[/bold green] Document summary generated")
         return summary
 
@@ -415,6 +439,7 @@ if __name__ == "__main__":
     chunks = quick_doc_loader(path)
 
     doc_agent.generate_document_summary_threadpool(chunks)
+    doc_agent.generate_document_summary(chunks)
 
 
 
