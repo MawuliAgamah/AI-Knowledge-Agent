@@ -7,7 +7,7 @@ from langchain_core import prompts, output_parsers
 from pydantic import BaseModel
 
 from langchain_core.prompts import ChatPromptTemplate
-from ai_agent.core.config.config import config, OllamaConfig
+from ai_agent.core.config.config import config, OllamaConfig , OpenAIConfig
 from dotenv import load_dotenv
 
 from rich.console import Console
@@ -352,8 +352,9 @@ class DocumentAgent:
         self.utils.doc_summary_by_map_reduce(llm = self.config.llm ,chunks=document_object) # type: ignore
     
     def generate_document_summary_threadpool(self, document_object):
-        # summary = asyncio.run(self.utils.doc_summary_by_map_reduce_async(llm=self.config.llm, chunks=document_object)) # type: ignore
-        summary = self.utils.doc_summary_by_map_reduce_multiprocess(llm=self.config.llm, chunks=document_object) # type: ignore 
+        import asyncio
+        summary = asyncio.run(self.utils.doc_summary_by_map_reduce_async(llm=self.config.llm, chunks=document_object)) # type: ignore
+        # summary = self.utils.doc_summary_by_map_reduce_multiprocess(llm=self.config.llm, chunks=document_object) # type: ignore 
         print(summary)
         console.print("[bold green]✓[/bold green] Document summary generated")
         return summary
@@ -406,7 +407,7 @@ def quick_doc_loader(path):
 
 if __name__ == "__main__":    
     model_utils = DocumentAgentUtilities()
-    config = OllamaConfig() 
+    config = OpenAIConfig() 
     doc_agent = DocumentAgent(config=config, utils=model_utils)
 
     path =   '/Users/mawuliagamah/obsidian vaults/Software Company/BookShelf/Books/The Art of Doing Science and Engineering.md'
