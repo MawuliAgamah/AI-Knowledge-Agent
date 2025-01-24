@@ -22,8 +22,10 @@ config = {
 
 
 class OpenAIConfig:
-    model = "gpt-3.5-turbo"
-    key = os.getenv("OPENAI_API_KEY")
+    def __init__(self):
+        self.model = "gpt-3.5-turbo"
+        self.key = os.getenv("OPENAI_API_KEY")
+        self.llm = ChatOpenAI(model=self.model,api_key=self.key)
 
     
 class OllamaConfig:

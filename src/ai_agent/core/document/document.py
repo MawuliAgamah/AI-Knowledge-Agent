@@ -39,6 +39,7 @@ from ai_agent.core.log import logger
 from ai_agent.core.document.sql_queries import (CREATE_LIBRARY_TABLE,
                                                 SAVE_DOCUMENT_IN_LIBRARY,DOCUMENT_EXISTS_QUERY)
 
+from regex import F
 from rich.console import Console
 
 from ai_agent.core.document.sqldb import DocumentSQL
@@ -64,7 +65,6 @@ class DocumentBuilder:
                 loader_md,
                 lemmetizer,
                 text_splitter,
-                agent,
                 ):
         self.name = "word document builder"
         self.document = document
@@ -72,7 +72,7 @@ class DocumentBuilder:
         self.loader_md = loader_md
         self.lemmetizer = lemmetizer
         self.text_splitter = text_splitter
-        self.agent = agent 
+        # self.doc_agent = doc_agent 
    
     def create_template(self, path):
         """Initialise the document object setting the documents path attribute as the path."""
@@ -166,15 +166,9 @@ class DocumentBuilder:
 
     def add_chunks(self, document_object, llm):
         """Insert the chunks into the document object """
-
         chunks = document_object.get_contents("chunked_document")
         document_summary = document_object.get_contents("summary")
-        # document_title = document_object.get_contents("title")
-
-        # Add the chunk a longside it's ID to the Chunks dictionairy
-        logger.info(f"{len(chunks)} chunks to iterate through in this doucment")
-
-        # for idx,chunk in tqdm(enumerate(chunks),desc="Chunking with metadata : ",total=len(chunks)):
+        
         chunk_list = []
         for idx, chunk in enumerate(chunks):
             logger.info(f"Chunk : {idx}")
@@ -205,31 +199,21 @@ class DocumentBuilder:
             contents="no_of_chunks",
             payload=len(chunk_list)
             )
-        )
-            
-
+        )   
         return document_object
 
-    def generate_summary(self, document_object, llm):
+    def generate_summary(self,llm,document_object):
         """Generate a summary of the document using language model."""
-
-        # Get the chunked document
         chunks = document_object.get_contents("chunked_document")
-        
-        try:
+        summary = llm.generate_document_summary(chunks = chunks)
+        document_object = document_object.update(contents="summary",payload=summary)
+        return document_object
             
-            return document_object
-            
-        except Exception as e:
-            console.print(f"[bold red]Error generating summary: {str(e)}[/bold red]")
-            raise
-
     def generate_title(self,document_object,llm):
             title = 'working on titles'
-
-            document_object = document_object.update(
-                contents = "title", payload=title
-            )
+            summary = document_object.get('summary')
+            title = llm.generate_document_title(chunks = summary)
+            document_object = document_object.update(contents = "title", payload=title)
             return document_object
 
 
@@ -276,8 +260,8 @@ class DocumentProcessor:
         document = self.document_builder.load_doc_into_langchain(document_object=document)
         document = self.document_builder.pre_process(document_object=document)
         document = self.document_builder.chunk_document(document_object=document)
-        document = self.document_builder.generate_summary(document_object=document, llm=self.llm)
         document = self.document_builder.add_chunks(document_object=document, llm=self.llm)
+        document = self.document_builder.generate_summary(document_object=document, llm=self.llm)
         document = self.document_builder.generate_title(document_object = document, llm =self.llm )
         self.save_document_to_db(document)
         return document
@@ -286,15 +270,17 @@ from ai_agent.core.agents.document_agent import DocumentAgent
 from ai_agent.core.config.config import OllamaConfig
 from ai_agent.core.agents.document_agent import DocumentAgentUtilities
 
+
 def create_doc_builder(path):
         from langchain.text_splitter import RecursiveCharacterTextSplitter
         from langchain_community.document_loaders import (
             Docx2txtLoader,
             UnstructuredMarkdownLoader
         )
-        config = OllamaConfig() 
+        config = OpenAIConfig() 
         model_utils = DocumentAgentUtilities()
-        
+        # doc_agent = DocumentAgent(config=config, utils=model_utils)
+
         """create an instanstiated document builder obejct"""
         doc_builder = DocumentBuilder(
             document = Document(),
@@ -302,17 +288,19 @@ def create_doc_builder(path):
             loader_md=UnstructuredMarkdownLoader(path),
             lemmetizer=WordNetLemmatizer(),
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=5),
-            agent = DocumentAgent(config=config, utils=model_utils)
             )
         return doc_builder
 
 
 def build_document(path,meta_data = None,persist = True):
     """Main Function to build a whole document"""
+    from ai_agent.core.config.config import OllamaConfig , OpenAIConfig
     doc_builder = create_doc_builder(path = path)
 
     # will need to refactor this 
-    document_agent = DocumentAgent(config=config,llm = ChatOllama(model ='llama3.2:latest'), model = 'llama3.2:latest')
+    config = OpenAIConfig() 
+    model_utils = DocumentAgentUtilities()
+    document_agent = DocumentAgent(config=config, utils=model_utils)
     sql_db = DocumentSQL()
     
     # pipeline to build out a document 
