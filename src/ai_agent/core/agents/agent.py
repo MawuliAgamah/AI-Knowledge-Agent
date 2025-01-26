@@ -157,8 +157,7 @@ def prompt(prompt_string, input_variables, output_format):
 
 
 def handle_task(task):
-    """
-    This functions takes in the agents list of tasks and reviews and improves upon them
+    """This functions takes in the agents list of tasks and reviews and improves upon them
     """
     print(f"\033[95m\033[1m" +
           "\n***** REVEIWING TASKS *****\n"+"\033[0m\033[0m")

@@ -85,7 +85,6 @@ def get_nebula_client():
 
 def nebula_create_space(space_name: str):
     """Create a space on nebula and create nodes,edges and relationships."""
-
     config = Config()
     config.max_connection_pool_size = 5
     # init connection pool
@@ -171,6 +170,7 @@ def get_edges_props_tags():
 if __name__ == '__main__':
     lamma_index_set(llm=OpenAI(temperature=0, model="gpt-3.5-turbo-instruct"),
                     embedding_model=OpenAIEmbedding(), chunk_size=514)
+    
     nebula_create_space(space_name="STAR")
     storage_context = get_storage_context(space_name="STAR")
     edge_types, rel_prop_names, tags = get_edges_props_tags()

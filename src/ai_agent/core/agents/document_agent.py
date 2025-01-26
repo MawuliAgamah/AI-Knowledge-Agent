@@ -232,8 +232,7 @@ class DocumentAgent:
         print(title)
         console.print("[bold green]✓[/bold green] Document Title generated")
         return title  
-
-
+    
     def make_chunk_metadata(self, chunk):
         """
         Generate metadata for each chunk

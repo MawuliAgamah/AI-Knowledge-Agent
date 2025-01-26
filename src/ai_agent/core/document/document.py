@@ -35,7 +35,7 @@ from ai_agent.core.prompts.document_prompts import (
     reduce_template
 )
 
-from ai_agent.core.log import logger
+# from ai_agent.core.log import logger
 from ai_agent.core.document.sql_queries import (CREATE_LIBRARY_TABLE,
                                                 SAVE_DOCUMENT_IN_LIBRARY,DOCUMENT_EXISTS_QUERY)
 
@@ -138,46 +138,32 @@ class DocumentBuilder:
         page_contents = ' '.join(lemmertizer.lemmatize(token) for token in nltk.word_tokenize(page_contents))
         page_contents = remove_stopwords(page_contents)  # remove stop words
         # Update the page contents of the documnet
-        document_object = (document_object.update(
-            contents="page_content", payload=page_contents)
-        )
+        document_object = (document_object.update(contents="page_content", payload=page_contents))
         console.print("[bold green]✓[/bold green] Stop words removed and lemmatized")
         return document_object
 
     def chunk_document(self, document_object):
-        """
-        Chunks document into pieces
-
-        params
-        ------
-        document_object : object
-
-        returns
-        -------
-        document_object : object
-        """
+        """Split the document up into chunk"""
         document = document_object.get_contents("document")
         chunks = self.text_splitter.split_documents(document)
-        document_object = document_object.update(
-            "chunked_document", payload=chunks)
-
-        # calculate the number of chunks 
+        document_object = document_object.update("chunked_document", payload=chunks)
+        document_object = document_object.update('number_of_chunks',payload=len(chunks))
+        console.print(f"[bold green]✓[/bold green] Document chunked : {len(chunks)} chunks ")
         return document_object
 
     def add_chunks(self, document_object, llm):
         """Insert the chunks into the document object """
         chunks = document_object.get_contents("chunked_document")
         document_summary = document_object.get_contents("summary")
-        
+        document_title = document_object.get_contents("summary")
         chunk_list = []
         for idx, chunk in enumerate(chunks):
-            logger.info(f"Chunk : {idx}")
             # LLM Creates meta_data for each chunk. Need to make this more 
             metadata = llm.make_chunk_metadata(chunk)
             chunk_store = {
                 "chunk": chunk,
                 "metadata": {
-                    "Document title": "NaN",
+                    "Document title": document_title,
                     "Document summary": document_summary,
                     "keywords": metadata['Keywords'],
                     "Tags": metadata['Tags'],
@@ -200,6 +186,7 @@ class DocumentBuilder:
             payload=len(chunk_list)
             )
         )   
+        console.print(f"[bold green]✓[/bold green] Chunks added to document template")
         return document_object
 
     def generate_summary(self,llm,document_object):
@@ -207,13 +194,15 @@ class DocumentBuilder:
         chunks = document_object.get_contents("chunked_document")
         summary = llm.generate_document_summary(chunks = chunks)
         document_object = document_object.update(contents="summary",payload=summary)
+        console.print(f"[bold green]✓[/bold green] Summary generated")
         return document_object
             
     def generate_title(self,document_object,llm):
             title = 'working on titles'
-            summary = document_object.get('summary')
+            summary = document_object.get_contents('chunked_document')
             title = llm.generate_document_title(chunks = summary)
             document_object = document_object.update(contents = "title", payload=title)
+            console.print(f"[bold green]✓[/bold green] Title generated")
             return document_object
 
 
@@ -254,14 +243,14 @@ class DocumentProcessor:
             self.db.save_document(document_object)
 
     def build_document(self, path_to_document,persist):
-        """Sequence of operations to build a full document given the path to the document."""
+        """Sequence of operations to build a full document given the path to the document before then saving to a db"""
         document = self.document_builder.create_template(path=path_to_document)
         document = self.document_builder.create_hash(document_object=document)
         document = self.document_builder.load_doc_into_langchain(document_object=document)
         document = self.document_builder.pre_process(document_object=document)
         document = self.document_builder.chunk_document(document_object=document)
+        document = self.document_builder.generate_summary(document_object=document, llm=self.llm) # generate summary before adding chunks as we use the summary as chunk metadata
         document = self.document_builder.add_chunks(document_object=document, llm=self.llm)
-        document = self.document_builder.generate_summary(document_object=document, llm=self.llm)
         document = self.document_builder.generate_title(document_object = document, llm =self.llm )
         self.save_document_to_db(document)
         return document
@@ -277,8 +266,6 @@ def create_doc_builder(path):
             Docx2txtLoader,
             UnstructuredMarkdownLoader
         )
-        config = OpenAIConfig() 
-        model_utils = DocumentAgentUtilities()
         # doc_agent = DocumentAgent(config=config, utils=model_utils)
 
         """create an instanstiated document builder obejct"""

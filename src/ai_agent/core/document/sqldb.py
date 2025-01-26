@@ -102,7 +102,7 @@ class DocumentSQL:
             values = (
                 document.path,
                 document.hash,
-                document.contents['no_of_chunks'],
+                document.contents['number_of_chunks'],
                 document.doc_type,
                 document.title,
                 document.contents['summary'],

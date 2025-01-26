@@ -1,4 +1,7 @@
 
+from aiohttp import payload_type
+
+
 class Document:
     """The Document Object Class that represents a document and
     its associated metadata.
@@ -27,6 +30,7 @@ class Document:
         self.title = None,
         self.summary = None,
         self.doc_type = None
+        self.number_of_chunks = None
         self.contents = {
             "id": None,
             "path": None,
@@ -35,14 +39,12 @@ class Document:
             "langchain.docObject":None,
             "summary": None,
             "chunks": {},
-            "no_of_chunks": None,
+            "number_of_chunks": None,
             "doc_type":None,
             "metadata": {
-                "title": None,
-                "Topic": None,
-                "Filename": None,
-                "document_type": "doc_x",
-                "category": None,
+                "title": self.title,
+                "Filename": self.path,
+                "document_type":self.doc_type,
             }
         }
 
@@ -66,6 +68,8 @@ class Document:
         """
         if contents == "document":
             return self.contents['langchain.docObject']
+        if contents == "title":
+            return self.title
         elif contents == "path":
             return self.contents['path']
         elif contents == "summary":
@@ -83,9 +87,11 @@ class Document:
         """
         if contents == "hash":
             self.hash = payload
+            self.contents['document_hash'] = payload 
             return self
         elif contents == "doctype":
             self.doc_type = payload
+            self.contents['doc_type'] = payload
             return self
         elif contents == 'title':
             self.title = payload
@@ -113,6 +119,9 @@ class Document:
             self.contents['summary'] = payload
             self.summary = payload 
             return self
+        elif contents == "number_of_chunks":
+            self.no_chunks = payload
+            return self 
         else:
             return ValueError('Not yet implemented')
 

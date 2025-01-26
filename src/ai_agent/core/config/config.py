@@ -35,3 +35,12 @@ class OllamaConfig:
 
     def get_llm(self):
         return self.llm
+
+
+######
+class NebulaConfig:
+    def __init__(self):
+        self.user = os.getenv("NEBULA_USER")
+        self.password = os.getenv("NEBULA_PASSWORD")
+        self.adddress = os.getenv("NEBULA_ADDRESS")
+        self.port = 9669
