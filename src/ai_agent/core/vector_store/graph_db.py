@@ -61,7 +61,7 @@ NEBULA_ADDRESS = '0.0.0.0'
 
 
 def get_nebula_client():
-    """Function to connect to and get the nebula db client to allow you to write queries to the graph db """
+    """Function to connect to and get the nebula db client to allow you to write queries to the graph db"""
     client = None
     try:
         config = Config()
@@ -74,7 +74,6 @@ def get_nebula_client():
             session.execute('USE STAR')
             session.execute('SHOW TAGS')
         connection_pool.close()
-
     except Exception:
         import traceback
         print(traceback.format_exc())
@@ -108,8 +107,7 @@ def nebula_create_space(space_name: str):
 def get_storage_context(space_name):
     """Whats this doing?"""
 
-    edge_types, rel_prop_names, tags = [
-        "relationship"], ["relationship"], ["entity"]
+    edge_types, rel_prop_names, tags = ["relationship"], ["relationship"], ["entity"]
 
     graph_store = NebulaGraphStore(
         space_name=space_name,

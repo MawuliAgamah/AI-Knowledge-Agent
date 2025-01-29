@@ -42,5 +42,5 @@ class NebulaConfig:
     def __init__(self):
         self.user = os.getenv("NEBULA_USER")
         self.password = os.getenv("NEBULA_PASSWORD")
-        self.adddress = os.getenv("NEBULA_ADDRESS")
+        self.address =   '0.0.0.0'
         self.port = 9669

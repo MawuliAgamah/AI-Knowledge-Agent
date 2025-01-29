@@ -11,7 +11,7 @@ class DocumentSQL:
 
     def __init__(self):
         self.db_path = "/Users/mawuliagamah/gitprojects/aiModule/databases/sql_lite/document_db.db"
-    
+        
 
     def doc_exists(self, document):  
         """check if the document exits"""
@@ -127,3 +127,12 @@ class DocumentSQL:
 
     def check_document_exists(self):
         """Query DB to check if a document exists"""
+        pass
+
+    def query(self,query):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute(query)
+        results = cursor.fetchall() 
+        conn.close()
+        return results
