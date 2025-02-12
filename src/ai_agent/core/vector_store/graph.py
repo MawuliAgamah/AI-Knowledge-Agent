@@ -31,65 +31,11 @@ os.environ["NEBULA_USER"] = "root"
 os.environ["NEBULA_PASSWORD"] = "nebula"
 # assumed we have NebulaGraph 3.5.0 or newer installed locally
 
-entities = Literal[
-   "CONCEPT",
-   "TOPIC",
-   "EXAMPLE",
-   "REFERENCE",
-   "EXPLANATION"
-]
-
-# Relationship types between entities
-relations = Literal[
-   "PREREQUISITES", 
-   "BUILDS_ON",
-   "SIMILAR_TO", 
-   "CONTRASTS_WITH",
-   "EXPLAINED_IN",
-   "REFERENCED_BY", 
-   "EXAMPLE_IN",
-   "BELONGS_TO",
-   "RELATES_TO"
-]
-
-# Schema defining valid relationships between entity types
-schema = {
-   "CONCEPT": [
-       "PREREQUISITES",
-       "BUILDS_ON", 
-       "SIMILAR_TO",
-       "CONTRASTS_WITH",
-       "EXPLAINED_IN",
-       "REFERENCED_BY",
-       "EXAMPLE_IN",
-       "BELONGS_TO",
-       "RELATES_TO"
-   ],
-   "TOPIC": [
-       "PREREQUISITES",
-       "BUILDS_ON",
-       "SIMILAR_TO", 
-       "CONTRASTS_WITH",
-       "EXPLAINED_IN",
-       "BELONGS_TO",
-       "RELATES_TO"
-   ],
-   "EXAMPLE": [
-       "EXAMPLE_IN",
-       "RELATES_TO",
-       "BELONGS_TO"
-   ],
-   "REFERENCE": [
-       "REFERENCED_BY",
-       "RELATES_TO",
-       "BELONGS_TO"
-   ],
-   "EXPLANATION": [
-       "EXPLAINED_IN",
-       "RELATES_TO",
-       "BELONGS_TO"
-   ]
-}
+from ai_agent.core.vector_store.graph_utils.ontology import (
+    SCHEMA,
+    RELATIONS,
+    ENTITIES
+)
 
 
 class NebulaDB:
@@ -144,7 +90,7 @@ class NebulaDB:
             logger.info(f"Space Generated : {space_name}")
         connection_pool.close()
 
-
+    
 
 
 class LlamaIndexKG:
@@ -153,18 +99,15 @@ class LlamaIndexKG:
     def __init__(self):
         pass
 
-
-    
     def get_llm(self):
         from llama_index.llms.ollama import Ollama
         from llama_index.llms.openai import OpenAI
-        #llm = OpenAI(model = 'gpt-3.5-turbo')
-        llm = Ollama(model="tinyllama:latest", request_timeout=180.0,)
+        llm = OpenAI(model = 'gpt-3.5-turbo')
+        #llm = Ollama(model="tinyllama:latest", request_timeout=180.0,)
         return llm
     
     #def get_embedding_model(self):
-    #    return 
-
+    #     return 
 
     def get_embedding_model(self):
         pass
@@ -231,18 +174,11 @@ class GraphRag:
     def __init__(self):
         pass 
 
-
-
-
+    def build_graph(self):
+        pass
 
 
 from ai_agent.core.document.sqldb import DocumentSQL 
-
-
-
-
-
-
 if __name__ == '__main__':
 
     #########################
@@ -279,9 +215,9 @@ if __name__ == '__main__':
         documents = llama_index_document,
         space_name = 'Knowledge_Graph',
         graph_store = graph_store,
-        entities = entities,
-        relations = relations,
-        schema = schema)
+        entities = ENTITIES,
+        relations = RELATIONS,
+        schema = SCHEMA)
 
     query_engine = index.as_query_engine(
     include_text=True,   # include source chunk with matching paths
