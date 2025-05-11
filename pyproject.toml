@@ -1,7 +1,7 @@
 [project]
-name = "aimodule"
+name = "knowledge_agent"
 version = "0.1.0"
-description = "Add your description here"
+description = "A module for creating and managing knowledge graphs with AI"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
@@ -24,16 +24,27 @@ dependencies = [
     "multiprocess>=0.70.17",
 ]
 
+[project.urls]
+Homepage = "https://github.com/yourusername/knowledge_agent"
+Issues = "https://github.com/yourusername/knowledge_agent/issues"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/ai_agent"]  # This points to your actual package directory
+packages = ["src"]
 
+[tool.hatch.build.targets.sdist]
+include = [
+    "src",
+    "LICENSE.txt",
+    "README.md",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+testpaths = ["tests"]
 
 [tool.pylint.MASTER]
 init-hook='import sys; sys.path.append("src")'

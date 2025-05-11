@@ -1,0 +1,330 @@
+"""
+Script which handles everything related to processing to be embedded.
+"""
+# import os
+# import sys
+# import glob
+from operator import imod
+from pydoc import text
+import sqlite3
+from dataclasses import dataclass
+
+# from tqdm import tqdm
+from langchain.chains import MapReduceDocumentsChain, ReduceDocumentsChain
+
+
+# from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.chains.combine_documents.stuff import StuffDocumentsChain
+from langchain.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
+import nltk
+from nltk.stem import * # type: ignore
+
+
+# from .config import config
+# Import Langchain
+
+from gensim.parsing.preprocessing import remove_stopwords
+
+from ai_agent.core.agents.document_agent import DocumentAgent
+from ai_agent.core.config import config
+
+from ai_agent.core.prompts.document_prompts import (
+    map_template,
+    reduce_template
+)
+
+# from ai_agent.core.log import logger
+from ai_agent.core.document.sql_queries import (CREATE_LIBRARY_TABLE,
+                                                SAVE_DOCUMENT_IN_LIBRARY,DOCUMENT_EXISTS_QUERY)
+
+from regex import F
+from rich.console import Console
+
+from ai_agent.core.document.sqldb import DocumentSQL
+from ai_agent.core.document.template import Document
+    
+console = Console()
+
+class DocumentChunker:
+    """Tools used by the doc builder"""    
+    def __init__(self,text_splitter):
+        self.text_splitter = text_splitter
+
+    def chunk(self,document):
+        """Different chunking strategies"""
+        pass 
+
+
+class DocumentBuilder:
+    """Construct Document Object"""
+    def __init__(self,
+                 document,
+                loader_docx,
+                loader_md,
+                lemmetizer,
+                text_splitter,
+                ):
+        self.name = "word document builder"
+        self.document = document
+        self.loader_docx = loader_docx
+        self.loader_md = loader_md
+        self.lemmetizer = lemmetizer
+        self.text_splitter = text_splitter
+        # self.doc_agent = doc_agent 
+   
+    def create_template(self, path):
+        """Initialise the document object setting the documents path attribute as the path."""
+        document_template = self.document.set(path=path)
+        console.print("[bold green]✓[/bold green] created document template")
+        return document_template
+
+    def check_contents(self,document_object):
+        """Look at the contents of the document. If it is empty, then skip the document"""
+
+    def create_hash(self,document_object):
+        from hashlib import sha256
+        """from the path of the file, create a uniuqe hash in referencee to it"""
+        path_to_doc = str(document_object.path)
+        hash_object = sha256(path_to_doc.encode())
+        document_object = (
+                    document_object.update(
+                contents="hash", payload=hash_object.hexdigest()[:8])
+            )
+        # document_object.hash = hash_object.hexdigest()[:8]
+        console.print("[bold green]✓[/bold green] document hash generated")
+        return document_object
+
+    def load_doc_into_langchain(self, document_object):
+        """Loads a document into the langchain data loader."""
+        path_to_document = document_object.get_contents('path')
+        if path_to_document.endswith('.docx'):
+            doc = self.loader_docx.load()
+            # document_object.contents['langchain.docObject'] = doc
+            document_object = (
+                document_object.update(
+            contents="langchain.docObject", payload=doc)
+        )
+            document_object = (
+                    document_object.update(
+                contents="doctype", payload='docx')
+            )
+            console.print("[bold green]✓[/bold green] document loaded into langchain (.docx)")
+            return document_object
+        # Markdown document
+        elif path_to_document.endswith('.md'):
+            doc = self.loader_md.load()
+            # self.document.contents['langchain.docObject'] = doc
+            
+            document_object = (
+                    document_object.update(
+                contents="doctype", payload='md')
+            )
+            document_object = (
+                document_object.update(
+            contents="langchain.docObject", payload=doc)
+        )
+            console.print("[bold green]✓[/bold green] document loaded into langchain (.md)")
+            return document_object
+
+    def pre_process(self, document_object):
+        """..."""
+        # Get page contents from the document object
+        page_contents = document_object.get_contents(contents="page_contents")
+        page_contents = page_contents.lower()  # Make page contents lower case
+        # stemmer = PorterStemmer()  # Create stemmer
+        lemmertizer = self.lemmetizer # instantiate lemmertizer
+        page_contents = ' '.join(lemmertizer.lemmatize(token) for token in nltk.word_tokenize(page_contents))
+        page_contents = remove_stopwords(page_contents)  # remove stop words
+        # Update the page contents of the documnet
+        document_object = (document_object.update(contents="page_content", payload=page_contents))
+        console.print("[bold green]✓[/bold green] Stop words removed and lemmatized")
+        return document_object
+
+    def chunk_document(self, document_object):
+        """Split the document up into chunk"""
+        document = document_object.get_contents("document")
+        chunks = self.text_splitter.split_documents(document)
+        document_object = document_object.update("chunked_document", payload=chunks)
+        document_object = document_object.update('number_of_chunks',payload=len(chunks))
+        console.print(f"[bold green]✓[/bold green] Document chunked : {len(chunks)} chunks ")
+        return document_object
+
+    def add_chunks(self, document_object, llm):
+        """Insert the chunks into the document object """
+        chunks = document_object.get_contents("chunked_document")
+        document_summary = document_object.get_contents("summary")
+        document_title = document_object.get_contents("summary")
+        chunk_list = []
+        for idx, chunk in enumerate(chunks):
+            # LLM Creates meta_data for each chunk. Need to make this more 
+            metadata = llm.make_chunk_metadata(chunk)
+            chunk_store = {
+                "chunk": chunk,
+                "metadata": {
+                    "Document title": document_title,
+                    "Document summary": document_summary,
+                    "keywords": metadata['Keywords'],
+                    "Tags": metadata['Tags'],
+                    "questions": metadata['Questions']
+                }}
+            chunk_list.append(chunk)
+            document_object = (
+                document_object
+                .update(
+                    contents="chunks",
+                    chunk_id=f"chunk_{idx}",
+                    payload=chunk_store
+                )
+            )
+        # calculate the number of chunks and add that to the docuent object 
+        document_object = (
+        document_object
+        .update(
+            contents="no_of_chunks",
+            payload=len(chunk_list)
+            )
+        )   
+        console.print(f"[bold green]✓[/bold green] Chunks added to document template")
+        return document_object
+
+    def generate_summary(self,llm,document_object):
+        """Generate a summary of the document using language model."""
+        chunks = document_object.get_contents("chunked_document")
+        summary = llm.generate_document_summary(chunks = chunks)
+        document_object = document_object.update(contents="summary",payload=summary)
+        console.print(f"[bold green]✓[/bold green] Summary generated")
+        return document_object
+            
+    def generate_title(self,document_object,llm):
+            title = 'working on titles'
+            summary = document_object.get_contents('chunked_document')
+            title = llm.generate_document_title(chunks = summary)
+            document_object = document_object.update(contents = "title", payload=title)
+            console.print(f"[bold green]✓[/bold green] Title generated")
+            return document_object
+
+
+class DocumentProcessor:
+    """Orchestrates the document processing pipeline, to save raw files to postgres db ready to load into vector db.
+    
+    This pipeline manages the end-to-end process of document processing, including:
+    - Document loading and parsing
+    - Text preprocessing and chunking
+    - Summary and metadata generation using LLMs
+    - Database storage and deduplication
+    
+    Attributes:
+        document_builder: Handles individual document processing operations
+        llm: Language model for generating summaries and metadata
+        db: Database connection for document storage
+    
+    Example:
+        pipeline = DocumentPipeline(
+            document_builder=DocBuilder(),
+            llm=OpenAIAgent(),
+            db=VectorDB()
+        )
+        doc = pipeline.build_document("path/to/doc.pdf", persist=True)
+    """
+
+    def __init__(self, document_builder, llm, db):
+        self.document_builder = document_builder
+        self.llm = llm
+        self.db = db
+
+    def save_document_to_db(self,document_object):
+        """Store the contents of the document object to SQL Lite DB"""
+        exists = self.db.doc_exists(document_object)
+        if exists:
+            print('Document Already Created')
+        else:
+            self.db.save_document(document_object)
+
+    def build_document(self, path_to_document,persist):
+        """Sequence of operations to build a full document given the path to the document before then saving to a db"""
+        document = self.document_builder.create_template(path=path_to_document)
+        document = self.document_builder.create_hash(document_object=document)
+        document = self.document_builder.load_doc_into_langchain(document_object=document)
+        document = self.document_builder.pre_process(document_object=document)
+        document = self.document_builder.chunk_document(document_object=document)
+        document = self.document_builder.generate_summary(document_object=document, llm=self.llm) # generate summary before adding chunks as we use the summary as chunk metadata
+        document = self.document_builder.add_chunks(document_object=document, llm=self.llm)
+        document = self.document_builder.generate_title(document_object = document, llm =self.llm )
+        self.save_document_to_db(document)
+        return document
+
+from ai_agent.core.agents.document_agent import DocumentAgent
+from ai_agent.core.config.config import OllamaConfig
+from ai_agent.core.agents.document_agent import DocumentAgentUtilities
+
+
+def create_doc_builder(path):
+        from langchain.text_splitter import RecursiveCharacterTextSplitter
+        from langchain_community.document_loaders import (
+            Docx2txtLoader,
+            UnstructuredMarkdownLoader
+        )
+        # doc_agent = DocumentAgent(config=config, utils=model_utils)
+
+        """create an instanstiated document builder obejct"""
+        doc_builder = DocumentBuilder(
+            document = Document(),
+            loader_docx=Docx2txtLoader(path),
+            loader_md=UnstructuredMarkdownLoader(path),
+            lemmetizer=WordNetLemmatizer(),
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=5),
+            )
+        return doc_builder
+
+
+def build_document(path,meta_data = None,persist = True):
+    """Main Function to build a whole document"""
+    from ai_agent.core.config.config import OllamaConfig , OpenAIConfig
+    doc_builder = create_doc_builder(path = path)
+
+    # will need to refactor this 
+    config = OpenAIConfig() 
+    model_utils = DocumentAgentUtilities()
+    document_agent = DocumentAgent(config=config, utils=model_utils)
+    sql_db = DocumentSQL()
+    
+    # pipeline to build out a document 
+    processor = (
+        DocumentProcessor(
+        document_builder=doc_builder, 
+        llm = document_agent,
+        db = sql_db
+        )
+    )
+    with console.status("[bold blue] Building document", spinner="dots") as status:
+        document = processor.build_document(path_to_document=path, persist=persist)
+        status.update("[bold red] saving document")
+        processor.save_document_to_db(document)
+        status.update("[bold red] Finished ")
+    return document
+
+
+
+def test_run():
+    from pprint import pprint
+    import os
+    """Test Module"""
+    path =   '/Users/mawuliagamah/obsidian vaults/Software Company/BookShelf/Books/The Art of Doing Science and Engineering.md'
+    document = build_document(path = path, meta_data=None ,persist=False)
+    pprint(document.contents)
+    
+def init_db():
+    """Initialised the data base. Creates on if it doesn't exist"""
+    db_path = '/Users/mawuliagamah/gitprojects/aiModule/databases/sql_lite/document_db.db'
+    # Create the Document Tables
+    with sqlite3.connect(db_path) as conn:
+        # Create documents table
+        conn.execute(CREATE_LIBRARY_TABLE)
+        conn.commit()
+    console.print(f"[bold green]✓[/bold green] document db created at : {db_path}")
+
+if __name__ == "__main__":
+    test_run()
+

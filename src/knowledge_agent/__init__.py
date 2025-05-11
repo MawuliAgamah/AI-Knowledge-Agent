@@ -1,5 +1,3 @@
 """Knowledge Agent - A module for creating and managing knowledge graphs with AI."""
 
-from knowledge_agent import __version__
-
-__all__ = ["knowledge_agent"]
+__version__ = "0.1.0" 
