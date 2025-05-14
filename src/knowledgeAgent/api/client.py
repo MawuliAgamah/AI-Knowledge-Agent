@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass
 
 @dataclass
-class DatabaseConfig:
+class GraphDatabaseConfig:
     db_type: str
     database: str
     host: Optional[str] = None
@@ -32,10 +32,10 @@ class KnowledgeGraphClient:
     
     def __init__(
         self,
-        db_config: Union[Dict, DatabaseConfig],
+        graph_db_config: Union[Dict, GraphDatabaseConfig],
         auth_credentials: Optional[Union[Dict, AuthCredentials]] = None,
         log_level: str = "INFO",
-        cache_dir: Optional[str] = None,
+        cache_config: Optional[str] = None,
         models: Optional[Dict[str, str]] = None,
         embedding_dimension: int = 768,
         max_connections: int = 10,
@@ -186,3 +186,34 @@ class KnowledgeGraphClient:
         """Close all connections and free resources."""
         # Implementation to clean up connections
         self.logger.info("KnowledgeGraphClient closed")
+
+
+if __name__ == "__main__":
+
+    client = KnowledgeGraphClient(
+        graph_db_config={
+            "db_type": "neo4j",
+            "host": "localhost",
+            "port": 7687,
+            "database": "knowledge",
+            "username": "neo4j",
+            "password": "password"
+        },
+        cache_config={
+            "cache_type": "sqlite",
+            "cache_location": "./document_cache"
+        }
+    )
+
+
+    document = client.add_document(
+            document_path="path/to/your/test.txt",
+            metadata={
+                "title": "Test Document",
+                "authors": ["Test Author"]
+            }
+        )
+
+    document.display()
+    client.close()
+

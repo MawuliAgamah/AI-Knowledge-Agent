@@ -47,15 +47,135 @@ from ai_agent.core.document.template import Document
     
 console = Console()
 
-class DocumentChunker:
-    """Tools used by the doc builder"""    
-    def __init__(self,text_splitter):
-        self.text_splitter = text_splitter
+from aiohttp import payload_type
 
-    def chunk(self,document):
-        """Different chunking strategies"""
-        pass 
 
+class Document:
+    """The Document Object Class that represents a document and
+    its associated metadata.
+
+    Class serves as a container for document content, 
+    metadata, and processing states. Maintains information about the document's path, content, chunks,
+    summaries, and other metadata in a structured format.
+
+    Attributes:
+        contents (dict): A dictionary containing all document-related 
+        information including:
+            - id: Unique identifier for the document
+            - path: File path to the document
+            - document: The loaded document object
+            - chunked_document: Document split into smaller chunks
+            - chunks: Dictionary of processed document chunks with metadata
+            - summary: Document summary
+            - metadata: Document metadata 
+                        including title, topic, filename, etc.
+    """
+
+    def __init__(self):
+        self.id = None
+        self.hash = None
+        self.path = None
+        self.title = None,
+        self.summary = None,
+        self.doc_type = None
+        self.number_of_chunks = None
+        self.contents = {
+            "id": None,
+            "path": None,
+            "document_hash":None,
+            "raw_txt": None,
+            "langchain.docObject":None,
+            "summary": None,
+            "chunks": {},
+            "number_of_chunks": None,
+            "doc_type":None,
+            "metadata": {
+                "title": self.title,
+                "Filename": self.path,
+                "document_type":self.doc_type,
+            }
+        }
+
+    def set(self,path):
+        """Set up a document with initial content"""
+        self.contents['path'] = path
+        self.path = path
+        return self 
+
+    def get_document(self):
+        """
+        Pull out a document
+        """
+        return self
+
+    def get_contents(self, contents):
+        """
+        Returns the contents of different attributes of the document.
+        self.contents['docuemnt'] currently stores the document
+        as a langchain document.The raw text is accessed via [0].page_contents
+        """
+        if contents == "document":
+            return self.contents['langchain.docObject']
+        if contents == "title":
+            return self.title
+        elif contents == "path":
+            return self.contents['path']
+        elif contents == "summary":
+            return self.contents['summary']
+        elif contents == "chunked_document":
+            return self.contents['chunked_document']
+        elif contents == "chunks":
+            return self.contents['chunks']
+        elif contents == "page_contents":
+            return self.contents['langchain.docObject'][0].page_content
+
+    def update(self,contents,payload, chunk_id=None,):
+        """
+        update the document
+        """
+        if contents == "hash":
+            self.hash = payload
+            self.contents['document_hash'] = payload 
+            return self
+        elif contents == "doctype":
+            self.doc_type = payload
+            self.contents['doc_type'] = payload
+            return self
+        elif contents == 'title':
+            self.title = payload
+            return self
+        elif contents == "path":
+            self.contents['path'] = payload
+            return self
+        elif contents == 'langchain.docObject':
+            self.contents['langchain.docObject'] = payload
+            return self
+        elif contents == "page_content":
+            # may not be redundant but shall check
+            self.contents['langchain.docObject'][0].page_content = payload
+            return self
+        elif contents == "chunked_document":
+            self.contents['chunked_document'] = payload
+            return self
+        elif contents == "chunks":
+            self.contents['chunks'][chunk_id] = payload
+            return self
+        elif contents == "no_of_chunks":
+            self.contents['no_of_chunks'] = payload
+            return self
+        elif contents == "summary":
+            self.contents['summary'] = payload
+            self.summary = payload 
+            return self
+        elif contents == "number_of_chunks":
+            self.no_chunks = payload
+            return self 
+        else:
+            return ValueError('Not yet implemented')
+
+    def persist(self):
+        """Persit the constructed document to SQL"""
+   
 
 class DocumentBuilder:
     """Construct Document Object"""
@@ -206,54 +326,7 @@ class DocumentBuilder:
             return document_object
 
 
-class DocumentProcessor:
-    """Orchestrates the document processing pipeline, to save raw files to postgres db ready to load into vector db.
-    
-    This pipeline manages the end-to-end process of document processing, including:
-    - Document loading and parsing
-    - Text preprocessing and chunking
-    - Summary and metadata generation using LLMs
-    - Database storage and deduplication
-    
-    Attributes:
-        document_builder: Handles individual document processing operations
-        llm: Language model for generating summaries and metadata
-        db: Database connection for document storage
-    
-    Example:
-        pipeline = DocumentPipeline(
-            document_builder=DocBuilder(),
-            llm=OpenAIAgent(),
-            db=VectorDB()
-        )
-        doc = pipeline.build_document("path/to/doc.pdf", persist=True)
-    """
 
-    def __init__(self, document_builder, llm, db):
-        self.document_builder = document_builder
-        self.llm = llm
-        self.db = db
-
-    def save_document_to_db(self,document_object):
-        """Store the contents of the document object to SQL Lite DB"""
-        exists = self.db.doc_exists(document_object)
-        if exists:
-            print('Document Already Created')
-        else:
-            self.db.save_document(document_object)
-
-    def build_document(self, path_to_document,persist):
-        """Sequence of operations to build a full document given the path to the document before then saving to a db"""
-        document = self.document_builder.create_template(path=path_to_document)
-        document = self.document_builder.create_hash(document_object=document)
-        document = self.document_builder.load_doc_into_langchain(document_object=document)
-        document = self.document_builder.pre_process(document_object=document)
-        document = self.document_builder.chunk_document(document_object=document)
-        document = self.document_builder.generate_summary(document_object=document, llm=self.llm) # generate summary before adding chunks as we use the summary as chunk metadata
-        document = self.document_builder.add_chunks(document_object=document, llm=self.llm)
-        document = self.document_builder.generate_title(document_object = document, llm =self.llm )
-        self.save_document_to_db(document)
-        return document
 
 from ai_agent.core.agents.document_agent import DocumentAgent
 from ai_agent.core.config.config import OllamaConfig
