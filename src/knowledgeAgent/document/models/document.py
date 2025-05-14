@@ -1,26 +1,9 @@
-
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 from .citation import Citation
 from .chunk import TextChunk
-
-
-@dataclass
-class DocumentMetadata:
-    """Contains all metadata about the document."""
-    title: Optional[str] = None        # Document title
-    authors: List[str] = field(default_factory=list)  # Author names
-    created_date: Optional[datetime] = None  # Document creation date
-    modified_date: Optional[datetime] = None  # Last modified date
-    
-    # Content metadata
-    language: str = "en"               # Document language
-    word_count: int = 0                # Word count
-
-        
-    # Custom metadata
-    tags: List[str] = field(default_factory=list)     #User-assigned tags
+from .metadata import DocumentMetadata
 
 
 @dataclass

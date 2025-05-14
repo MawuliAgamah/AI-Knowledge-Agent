@@ -9,21 +9,22 @@ class DocumentProcessor:
         self.document_manager = DocumentManager()
         self.db = db
 
-    def preprocess(self, document_path, document_id, document_type):
-        document = self._initialise_document(document_path,document_id,document_type)
+    def preprocess(self, document_path, document_id):
+        document = self._initialise_document(document_path,document_id)
         document = self._clean_document(document)
         document = self._create_chunks(document)
         document = self._create_metadata(document)
-        self._cache_document(document)
+        #self._cache_document(document)
         return document 
     
-    def _initialise_document(self,document_path,document_id,document_type):
+    def _initialise_document(self,document_path,document_id):
         """Initialise the document object."""
-        document = self.document_manager.make_new_document(document_path,document_id,document_type)
+        document = self.document_manager.make_new_document(document_path,document_id)
         return document
 
     def _clean_document(self, document):
         """Clean the document."""
+        #document = self.document_manager.clean_document(document)
         return document 
     
     def _create_chunks(self, document):
@@ -49,10 +50,10 @@ class DocumentProcessor:
     #     self._cache_document(document)
     #     return document
 
-    def _cache_document(self,document_object):
-        """Store the contents of the document object to SQL Lite DB"""
-        exists = self.db.doc_exists(document_object)
-        if exists:
-            print('Document Already Created')
-        else:
-            self.db.save_document(document_object)
+    # def _cache_document(self,document_object):
+    #     """Store the contents of the document object to SQL Lite DB"""
+    #     exists = self.db.doc_exists(document_object)
+    #     if exists:
+    #         print('Document Already Created')
+    #     else:
+    #         self.db.save_document(document_object)

@@ -7,6 +7,8 @@ from .citation import Citation
 @dataclass
 class DocumentMetadata:
     """Contains all metadata about the document."""
+    document_id: str = field(default_factory=str)
+    metadata_id: str = field(default_factory=str)
     title: Optional[str] = None        # Document title
     authors: List[str] = field(default_factory=list)  # Author names
     created_date: Optional[datetime] = None  # Document creation date

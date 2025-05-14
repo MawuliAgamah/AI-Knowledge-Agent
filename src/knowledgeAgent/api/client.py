@@ -137,7 +137,7 @@ class KnowledgeGraphClient:
     
     def _initialize_services(self) -> None:
         """Initialize all required services."""
-        from ..document.service import DocumentService
+        from src.knowledgeAgent.document.service import DocumentService
         
         # Convert cache_config to format expected by DocumentService
         if isinstance(self.cache_config, str):
@@ -270,11 +270,13 @@ if __name__ == "__main__":
     )
 
 
-    document = client.add_document(
+    client.add_document(
             document_path="/Users/mawuliagamah/obsidian vaults/Software Company/3. BookShelf/Books/Psychocybernetics Principles for Creative Living/Psycho-Cybernetics.md",
             document_type="markdown",
             document_id="1234567890"
             )
+    
+
 
     # document.display()
     client.close()
