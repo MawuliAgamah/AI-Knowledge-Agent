@@ -69,7 +69,7 @@ class AgentModule:
             raise ValueError(f"Unsupported RAG type: {self.config.rag_type}")
 
     def _initialise_with_vector_rag(self) -> None:
-        from ai_agent.core.document.document import create_doc_builder
+        from knowledgeAgent.core.document.document import create_doc_builder
         """Set up AI agent with vector based rag"""
         # ----------------------------------
         # 1. initialise vector
@@ -137,7 +137,7 @@ def create_agent(
                           reset_db=reset_db)
     return AgentModule(configuration=configuraton, database=vs)
 
-from ai_agent.core.document.document import build_document
+from knowledgeAgent.core.document.document import build_document
 
 def test_run(path_to_note):
     agent = create_agent(

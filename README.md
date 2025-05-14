@@ -6,14 +6,14 @@ A Python module for creating and managing knowledge graphs with AI.
 
 ### From PyPI (once published)
 ```bash
-pip install knowledge_agent
+pip install knowledgeAgent
 ```
 
 ### Development Installation (Editable Mode)
 Clone the repository:
 ```bash
-git clone https://github.com/yourusername/knowledge_agent.git
-cd knowledge_agent
+git clone https://github.com/yourusername/knowledgeAgent.git
+cd knowledgeAgent
 pip install -e .
 ```
 
@@ -22,16 +22,21 @@ This installs the package in "editable" mode, so changes to the source code will
 ## Usage
 
 ```python
-from knowledge_agent.core import module
+from knowledgeAgent.core import module
 
 # Create a knowledge graph
-kg = module.KnowledgeGraph(name="my_graph")
+kg = module.KnowledgeGraphModule()
 
 # Add data to the graph
-kg.add_data(source="my_document.txt")
+agent = module.create_agent(
+    sql_db="path/to/db.db",
+    vector_db_path="path/to/vector_db",
+    collection="my_collection",
+    model_name="gpt-3.5-turbo"
+)
 
-# Query the knowledge graph
-results = kg.query("What is AI?")
+# Load documents
+agent = agent.load_documents(path_to_document=["document.md"])
 ```
 
 ## Development
