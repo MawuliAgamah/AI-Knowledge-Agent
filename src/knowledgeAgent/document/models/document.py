@@ -2,9 +2,26 @@
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Any
 from datetime import datetime
-from .metadata import DocumentMetadata
 from .citation import Citation
 from .chunk import TextChunk
+
+
+@dataclass
+class DocumentMetadata:
+    """Contains all metadata about the document."""
+    title: Optional[str] = None        # Document title
+    authors: List[str] = field(default_factory=list)  # Author names
+    created_date: Optional[datetime] = None  # Document creation date
+    modified_date: Optional[datetime] = None  # Last modified date
+    
+    # Content metadata
+    language: str = "en"               # Document language
+    word_count: int = 0                # Word count
+
+        
+    # Custom metadata
+    tags: List[str] = field(default_factory=list)     #User-assigned tags
+
 
 @dataclass
 class Document:
@@ -14,6 +31,7 @@ class Document:
     file_path: str               # Original file path
     file_type: str               # File format (PDF, DOCX, MD, etc.)
     file_size: int               # Size in bytes
+    title: str
     
     # Content
     raw_content: str             # Original extracted text
@@ -21,17 +39,22 @@ class Document:
     
     # Metadata
     metadata: DocumentMetadata   # Extracted metadata
-    citations : Citation
-    hash: str                    # Content hash for versioning
     
     # Chunks placeholder - will be filled during preprocessing
-    chunks: List[TextChunk]
+    textChunks: List[TextChunk]
     
     # Processing information
-    created_at: datetime = field(default_factory=datetime.now)
+    document_created_at: datetime = field(default_factory=datetime.now)
     preprocessed_at: Optional[datetime] = None
-    last_processed_at: Optional[datetime] = None
-    preprocessing_stats: Dict[str, Any] = field(default_factory=dict)
     
     # Storage information
     cache_location: Optional[str] = None
+    is_cached: bool = False
+    cache_created_at: Optional[datetime] = None
+    cache_updated_at: Optional[datetime] = None
+    is_preprocessed: bool = False
+    is_chunked: bool = False
+    is_metadata_generated: bool = False
+    is_hash_generated: bool = False
+    
+    

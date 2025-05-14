@@ -8,3 +8,9 @@ class Chunker:
     def chunk(self,document):
         """Different chunking strategies"""
         pass 
+
+
+    def _create_chunk_metadata(self,document):
+        """Create chunk metadata"""
+        print("creating chunk related metadata")
+        return document

@@ -173,27 +173,87 @@ class Document:
         else:
             return ValueError('Not yet implemented')
 
-    def persist(self):
-        """Persit the constructed document to SQL"""
-   
 
-class DocumentBuilder:
-    """Construct Document Object"""
-    def __init__(self,
-                 document,
-                loader_docx,
-                loader_md,
-                lemmetizer,
-                text_splitter,
-                ):
-        self.name = "word document builder"
-        self.document = document
-        self.loader_docx = loader_docx
-        self.loader_md = loader_md
-        self.lemmetizer = lemmetizer
-        self.text_splitter = text_splitter
-        # self.doc_agent = doc_agent 
    
+from src.knowledgeAgent.document.models.metadata import DocumentMetadata
+from src.knowledgeAgent.document.models.document import Document
+
+class DocumentManager:
+    """Construct Document Object"""
+    def __init__(self):
+        self.name = "Document builder"
+
+    def make_new_document(self, document_path, document_id, document_type):
+       import os
+       """Create a new Document instance based on file information"""
+       # Get file metadata
+       print(f"Creating document for {document_path}")
+       
+       file_size = os.path.getsize(document_path)
+       filename = os.path.basename(document_path)
+       
+       # Create a document with initial metadata
+       metadata = DocumentMetadata(
+           title=None,  # Will be filled later
+           document_type=document_type,
+           # Other metadata fields
+       )
+
+       citation = DocumentCitation(
+           document_id=document_id,
+           document_type=document_type,
+           file_path=document_path,
+           file_size=file_size,
+           hash="",  # Will be calculated later
+       )
+       
+       # Create the Document instance
+       document = Document(
+           id=document_id,
+           filename=filename,
+           file_path=document_path,
+           file_type=document_type,
+           file_size=file_size,
+           raw_content="",  # Will be filled during parsing
+           clean_content="",  # Will be filled during cleaning
+           metadata=metadata,
+           citations=[],
+           hash="",  # Will be calculated later
+           TextChunk=[])
+       
+       return document
+
+       def chunk_document(self, document):
+           pass
+       
+       def generate_document_level_metadata(self, document):
+           pass
+       
+
+       
+       
+   
+           
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def create_template(self, path):
         """Initialise the document object setting the documents path attribute as the path."""
         document_template = self.document.set(path=path)
