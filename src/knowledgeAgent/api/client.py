@@ -1,4 +1,3 @@
-
 from typing import Dict, Optional, Union, List, Any
 import logging
 from dataclasses import dataclass
@@ -35,7 +34,7 @@ class KnowledgeGraphClient:
         graph_db_config: Union[Dict, GraphDatabaseConfig],
         auth_credentials: Optional[Union[Dict, AuthCredentials]] = None,
         log_level: str = "INFO",
-        cache_config: Optional[str] = None,
+        cache_config: Optional[Union[Dict, str]] = None,
         models: Optional[Dict[str, str]] = None,
         embedding_dimension: int = 768,
         max_connections: int = 10,
@@ -48,14 +47,14 @@ class KnowledgeGraphClient:
             db_config: Database configuration object or dictionary
             auth_credentials: Authentication credentials or dictionary (optional)
             log_level: Logging level (default: INFO)
-            cache_dir: Directory for local caching (default: system temp)
+            cache_config: Cache configuration dictionary or path string (default: None)
             models: Dictionary of AI model names to use
             embedding_dimension: Dimension for vector embeddings
             max_connections: Maximum number of concurrent connections
             timeout: Connection timeout in seconds
         """
         # Convert dictionary configs to objects if needed
-        self.db_config = db_config if isinstance(db_config, DatabaseConfig) else DatabaseConfig(**db_config)
+        self.db_config = graph_db_config if isinstance(graph_db_config, GraphDatabaseConfig) else GraphDatabaseConfig(**graph_db_config)
         
         if auth_credentials:
             self.auth = auth_credentials if isinstance(auth_credentials, AuthCredentials) else AuthCredentials(**auth_credentials)
@@ -73,7 +72,8 @@ class KnowledgeGraphClient:
         self._configure_logging(log_level)
         
         # Initialize configuration
-        self.cache_dir = self._setup_cache_directory(cache_dir)
+        self.cache_config = cache_config
+        self.cache_dir = self._setup_cache_directory(cache_config)
         self.models = models or self._get_default_models()
         self.embedding_dimension = embedding_dimension
         self.max_connections = max_connections
@@ -92,11 +92,33 @@ class KnowledgeGraphClient:
         self.logger.setLevel(level)
         # Add handlers, formatters, etc.
     
-    def _setup_cache_directory(self, cache_dir: Optional[str]) -> str:
+    def _setup_cache_directory(self, cache_config: Optional[Union[Dict, str]]) -> str:
         """Set up and validate the cache directory."""
-        # Implementation to create or validate cache directory
-        # Return the path to the cache directory
-        pass
+        import os
+        import tempfile
+        
+        # If cache_config is a string, use it as directory path
+        if isinstance(cache_config, str):
+            if os.path.exists(cache_config):
+                return cache_config
+            else:
+                try:
+                    os.makedirs(cache_config, exist_ok=True)
+                    return cache_config
+                except Exception as e:
+                    self.logger.warning(f"Failed to create cache directory {cache_config}: {e}")
+                    
+        # If cache_config is a dict, extract location
+        elif isinstance(cache_config, dict) and "cache_location" in cache_config:
+            location = cache_config["cache_location"]
+            if os.path.exists(os.path.dirname(location)):
+                return os.path.dirname(location)
+        
+        # Default to system temp directory
+        default_dir = os.path.join(tempfile.gettempdir(), "knowledgeAgent_cache")
+        os.makedirs(default_dir, exist_ok=True)
+        self.logger.info(f"Using default cache directory: {default_dir}")
+        return default_dir
     
     def _get_default_models(self) -> Dict[str, str]:
         """Get default AI models configuration."""
@@ -115,28 +137,70 @@ class KnowledgeGraphClient:
     
     def _initialize_services(self) -> None:
         """Initialize all required services."""
-        # Create service objects for:
-        # - Document processing
-        # - Entity extraction
-        # - Graph management
-        # - Query handling
-        pass
+        from ..document.service import DocumentService
+        
+        # Convert cache_config to format expected by DocumentService
+        if isinstance(self.cache_config, str):
+            doc_cache_config = {"enabled": True, "location": self.cache_dir}
+        elif isinstance(self.cache_config, dict):
+            doc_cache_config = self.cache_config
+            if "enabled" not in doc_cache_config:
+                doc_cache_config["enabled"] = True
+        else:
+            doc_cache_config = {"enabled": True, "location": self.cache_dir}
+            
+        self.document_service = DocumentService(cache_config=doc_cache_config)
     
     # Document Operations
-    def add_document(self, document_path: str, document_type: Optional[str] = None, metadata: Optional[Dict] = None) -> str:
+    def add_document(self, document_path: str,document_id: str,document_type: Optional[str] = None) -> str:
         """
         Add a document to the knowledge graph.
         
         Args:
             document_path: Path to the document file
             document_type: Type of document (optional, will be inferred if not provided)
-            metadata: Additional metadata for the document
             
         Returns:
             document_id: Unique ID for the added document
         """
-        # Implementation
-        pass
+        self.logger.info(f"Adding document: {document_path}")
+        
+        # Infer document type if not provided
+        if document_type is None:
+            # Simple inference based on file extension
+            import os
+            ext = os.path.splitext(document_path)[1].lower()
+            if ext == '.pdf':
+                document_type = 'pdf'
+            elif ext in ['.doc', '.docx']:
+                document_type = 'docx'
+            elif ext in ['.md', '.markdown']:
+                document_type = 'markdown'
+            elif ext in ['.txt']:
+                document_type = 'text'
+            else:
+                document_type = 'unknown'
+            
+            self.logger.info(f"Inferred document_type: {document_type}")
+        
+        # If document_id is None, generate a fallback ID
+        if document_id is None:
+            import hashlib
+            import time
+            fallback_id = hashlib.md5(f"{document_path}:{time.time()}".encode()).hexdigest()
+            self.logger.warning(f"Document service returned None ID, using fallback: {fallback_id}")
+            document_id = fallback_id
+        
+                # Use document service to process the document
+        document_id = self.document_service.add_document(
+            document_path=document_path,
+            document_type=document_type,
+            document_id=document_id,
+            cache=True
+        )
+            
+        self.logger.info(f"Document added with ID: {document_id}")
+        return document_id
     
     def process_document(self, document_id: str) -> Dict[str, Any]:
         """
@@ -149,7 +213,7 @@ class KnowledgeGraphClient:
             processing_results: Dictionary with processing statistics
         """
         # Implementation
-        pass
+        return {"status": "not_implemented", "document_id": document_id}
     
     # Graph Operations
     def create_graph(self, name: str, description: Optional[str] = None) -> str:
@@ -164,7 +228,7 @@ class KnowledgeGraphClient:
             graph_id: Unique ID for the created graph
         """
         # Implementation
-        pass
+        return f"graph_{name}"
     
     # Query Operations
     def query(self, query_text: str, graph_id: Optional[str] = None) -> List[Dict]:
@@ -179,7 +243,7 @@ class KnowledgeGraphClient:
             results: List of matching results
         """
         # Implementation
-        pass
+        return [{"result": "not_implemented"}]
     
     # Connection Management
     def close(self) -> None:
@@ -201,19 +265,17 @@ if __name__ == "__main__":
         },
         cache_config={
             "cache_type": "sqlite",
-            "cache_location": "./document_cache"
+            "cache_location": "/Users/mawuliagamah/utilities/obsidian/server/obsidian/obsidian_cache.db"
         }
     )
 
 
     document = client.add_document(
-            document_path="path/to/your/test.txt",
-            metadata={
-                "title": "Test Document",
-                "authors": ["Test Author"]
-            }
-        )
+            document_path="/Users/mawuliagamah/obsidian vaults/Software Company/3. BookShelf/Books/Psychocybernetics Principles for Creative Living/Psycho-Cybernetics.md",
+            document_type="markdown",
+            document_id="1234567890"
+            )
 
-    document.display()
+    # document.display()
     client.close()
 

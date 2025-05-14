@@ -9,9 +9,7 @@ class ChunkMetadata:
     section_title: Optional[str] = None      # Title of the section containing chunk
     section_depth: int = 0                   # Heading level (1 for h1, 2 for h2, etc.)
     page_number: Optional[int] = None        # Page number in source document
-    is_table: bool = False                   # Whether chunk contains tabular data
-    is_code: bool = False                    # Whether chunk contains code
-    is_quote: bool = False                   # Whether chunk is a quotation
+
     
     # Position information
     paragraph_index: Optional[int] = None    # Paragraph number in document
@@ -24,15 +22,15 @@ class ChunkMetadata:
     # reading_level: Optional[str] = None      # Readability score/level
     
     # Semantic information
-    topics: List[str] = field(default_factory=list)  # Main topics in chunk
-    keywords: List[str] = field(default_factory=list)  # Key terms
-    sentiment: Optional[float] = None        # Sentiment score if applicable
-    importance_score: float = 0.0            # Relevance/importance within document
+    topics: List[str] = field(default_factory=list, metadata={"max_items": 3})  # Main topics in chunk (max 3)
+    keywords: List[str] = field(default_factory=list, metadata={"max_items": 3})  # Key terms (max 3)
+    # importance_score: float = 0.0            # Relevance/importance within document
     
     # Processing metadata
     chunk_strategy: str = "paragraph"        # How chunk was created
     token_count: int = 0                     # Tokenized length
     embedding_model: Optional[str] = None    # Model used for embedding
+
 
 @dataclass
 class TextChunk:

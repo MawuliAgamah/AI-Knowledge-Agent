@@ -5,10 +5,8 @@ class DocumentProcessor:
     """Orchestrates the document processing pipeline, to save raw files to postgres db ready to load into vector db.
     """
 
-    def __init__(self, document_builder, llm, db):
-        self.document_builder = document_builder
+    def __init__(self,db):
         self.document_manager = DocumentManager()
-        self.llm = llm
         self.db = db
 
     def preprocess(self, document_path, document_id, document_type):
@@ -19,7 +17,7 @@ class DocumentProcessor:
         self._cache_document(document)
         return document 
     
-    def _initialise_document(self, document_path, document_type):
+    def _initialise_document(self,document_path,document_id,document_type):
         """Initialise the document object."""
         document = self.document_manager.make_new_document(document_path,document_id,document_type)
         return document
