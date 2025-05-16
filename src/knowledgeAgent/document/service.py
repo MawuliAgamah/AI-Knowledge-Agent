@@ -9,16 +9,13 @@ import uuid
 class DocumentService:
     """Service for document operations, used by the client"""
 
-    def __init__(self, cache_config=None, llm_service=None):
+    def __init__(self, db_client, llm_service=None):
         self.logger = logging.getLogger("knowledgeAgent.document")
-        self.cache_config = cache_config or {}
+        self.db_client = db_client
         self.llm_service = llm_service
         
-        # Initialize processor with cache config
-        self.processor = DocumentProcessor(
-            db=self.cache_config,  # Pass the entire cache config
-            llm_service=self.llm_service
-        )
+        # initialize document processor
+        self.processor = DocumentProcessor(db_client=self.db_client,  llm_service=self.llm_service)
         
     def add_document(self, document_path, document_type=None, document_id=None, cache=True):
         """Add a document to the system"""
@@ -38,5 +35,7 @@ class DocumentService:
         except Exception as e:
             self.logger.error(f"Error adding document: {e}")
             return None
+        
+
     
     

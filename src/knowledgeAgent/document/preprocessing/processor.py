@@ -1,28 +1,15 @@
 from src.knowledgeAgent.document.preprocessing.parser import _get_parser_for_type
 from src.knowledgeAgent.document.manager.document_manager import DocumentManager
-from src.knowledgeAgent.document.cache.sqllite import SqlLite
+from src.knowledgeAgent.core.db.sql_lite.service import SQLLiteService
 import logging
 
 class DocumentProcessor:
     """Orchestrates the document processing pipeline, to save raw files to postgres db ready to load into vector db."""
-    def __init__(self, db, llm_service):
+    def __init__(self,db_client,llm_service):
         self.document_manager = DocumentManager(llm_service=llm_service)
         self.logger = logging.getLogger("knowledgeAgent.document")
-    
+        self.db_client = db_client
         # Get database path from cache config
-        db_path = None
-        if isinstance(db, dict):
-            db_path = db.get('cache_location') or db.get('location')
-        elif hasattr(db, 'cache_location'):
-            db_path = db.cache_location
-        elif hasattr(db, 'db_path'):
-            db_path = db.db_path
-            
-        if not db_path:
-            self.logger.warning("No database path provided, using default")
-            
-        self.logger.info(f"Initializing database with path: {db_path}")
-        self.db = SqlLite(db_path=db_path)
 
     def process_document(self, document_path, document_id):
         # Process new document
@@ -78,12 +65,10 @@ class DocumentProcessor:
     def _save_document(self, document):
         """Save document to SQLite"""
         try:
-            if not self.db:
+            if not self.db_client:
                 self.logger.warning("Database not initialized, skipping save")
                 return document
-                
-            self.db.save_document(document)
-            document.is_cached = True
+            self.db_client.save_document(document)            
             self.logger.info(f"Document saved to database")
         except Exception as e:
             self.logger.error(f"Error saving to database: {e}")

@@ -4,7 +4,7 @@ from datetime import datetime
 from .citation import Citation
 from .chunk import TextChunk
 from .metadata import DocumentMetadata
-
+from rich.console import Console
 
 @dataclass
 class Document:
@@ -39,5 +39,4 @@ class Document:
     is_chunked: bool = False
     is_metadata_generated: bool = False
     is_hash_generated: bool = False
-    
     
