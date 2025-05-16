@@ -1,6 +1,7 @@
 from typing import Dict, Optional, Union, List, Any
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 
 @dataclass
 class GraphDatabaseConfig:
@@ -35,6 +36,7 @@ class KnowledgeGraphClient:
         auth_credentials: Optional[Union[Dict, AuthCredentials]] = None,
         log_level: str = "INFO",
         cache_config: Optional[Union[Dict, str]] = None,
+        llm_config: Optional[Dict] = None,
         models: Optional[Dict[str, str]] = None,
         embedding_dimension: int = 768,
         max_connections: int = 10,
@@ -48,6 +50,7 @@ class KnowledgeGraphClient:
             auth_credentials: Authentication credentials or dictionary (optional)
             log_level: Logging level (default: INFO)
             cache_config: Cache configuration dictionary or path string (default: None)
+            llm_config: Configuration for the LLM service (default: None)
             models: Dictionary of AI model names to use
             embedding_dimension: Dimension for vector embeddings
             max_connections: Maximum number of concurrent connections
@@ -73,6 +76,7 @@ class KnowledgeGraphClient:
         
         # Initialize configuration
         self.cache_config = cache_config
+        self.llm_config = llm_config
         self.cache_dir = self._setup_cache_directory(cache_config)
         self.models = models or self._get_default_models()
         self.embedding_dimension = embedding_dimension
@@ -138,6 +142,10 @@ class KnowledgeGraphClient:
     def _initialize_services(self) -> None:
         """Initialize all required services."""
         from src.knowledgeAgent.document.service import DocumentService
+        from src.knowledgeAgent.llm.service import LLMService
+        
+        # Initialize LLM service with config
+        self.llm_service = LLMService(config=self.llm_config)
         
         # Convert cache_config to format expected by DocumentService
         if isinstance(self.cache_config, str):
@@ -146,10 +154,17 @@ class KnowledgeGraphClient:
             doc_cache_config = self.cache_config
             if "enabled" not in doc_cache_config:
                 doc_cache_config["enabled"] = True
+            if "cache_location" in doc_cache_config:
+                doc_cache_config["location"] = doc_cache_config["cache_location"]
         else:
             doc_cache_config = {"enabled": True, "location": self.cache_dir}
             
-        self.document_service = DocumentService(cache_config=doc_cache_config)
+        self.logger.info(f"Initializing document service with cache config: {doc_cache_config}")
+            
+        # Initialize document service with LLM service
+        self.document_service = DocumentService(cache_config=doc_cache_config,
+                                                llm_service=self.llm_service)
+
     
     # Document Operations
     def add_document(self, document_path: str,document_id: str,document_type: Optional[str] = None) -> str:
@@ -191,18 +206,14 @@ class KnowledgeGraphClient:
             self.logger.warning(f"Document service returned None ID, using fallback: {fallback_id}")
             document_id = fallback_id
         
-                # Use document service to process the document
-        document_id = self.document_service.add_document(
-            document_path=document_path,
-            document_type=document_type,
-            document_id=document_id,
-            cache=True
-        )
+        # Use document service to process the document
+        result_id = self.document_service.add_document(document_path=document_path, document_type=document_type,document_id=document_id,cache=True)
+        document_id = result_id if result_id is not None else document_id
             
         self.logger.info(f"Document added with ID: {document_id}")
         return document_id
     
-    def process_document(self, document_id: str) -> Dict[str, Any]:
+    def extraxct_ontology(self, document_id: str) -> Dict[str, Any]:
         """
         Process a document to extract entities and relationships.
         
@@ -253,6 +264,18 @@ class KnowledgeGraphClient:
 
 
 if __name__ == "__main__":
+    import os
+    from pathlib import Path
+    import dotenv
+    
+    # Find the project root directory (where .env file is located)
+    project_root = Path(__file__).resolve().parent.parent.parent.parent
+    dotenv.load_dotenv(project_root / ".env")    
+
+    # Get API key from environment
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY environment variable is not set")
 
     client = KnowledgeGraphClient(
         graph_db_config={
@@ -266,6 +289,11 @@ if __name__ == "__main__":
         cache_config={
             "cache_type": "sqlite",
             "cache_location": "/Users/mawuliagamah/utilities/obsidian/server/obsidian/obsidian_cache.db"
+        },
+        llm_config={
+            "model": "gpt-3.5-turbo",
+            "temperature": 0.2,
+            "api_key": api_key
         }
     )
 

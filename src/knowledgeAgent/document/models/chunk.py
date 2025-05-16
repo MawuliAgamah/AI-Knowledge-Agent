@@ -4,16 +4,16 @@ from typing import List, Dict, Optional
 @dataclass
 class ChunkMetadata:
     """Metadata specific to a text chunk"""
+
+    # Position in document
+    start_index: int             # Start position in original document
+    end_index: int               # End position in original document
     
     # Structural context
     section_title: Optional[str] = None      # Title of the section containing chunk
     section_depth: int = 0                   # Heading level (1 for h1, 2 for h2, etc.)
     page_number: Optional[int] = None        # Page number in source document
 
-    
-    # Position information
-    paragraph_index: Optional[int] = None    # Paragraph number in document
-    paragraph_position: Optional[str] = None # Position (start, middle, end)
     
     # Content analysis
     language: Optional[str] = None           # Language of this specific chunk
@@ -28,9 +28,9 @@ class ChunkMetadata:
     
     # Processing metadata
     chunk_strategy: str = "paragraph"        # How chunk was created
-    token_count: int = 0                     # Tokenized length
     embedding_model: Optional[str] = None    # Model used for embedding
 
+    
 
 @dataclass
 class TextChunk:
@@ -40,14 +40,11 @@ class TextChunk:
     content: str                 # Chunk text content
     metadata: ChunkMetadata      # Chunk-specific metadata
     
-    # Position in document
-    start_index: int             # Start position in original document
-    end_index: int               # End position in original document
     
     # Content navigation
-    section: Optional[str] = None             # Document section
-    heading: Optional[str] = None             # Nearest heading
-    page_num: Optional[int] = None            # Page number
+    #section: Optional[str] = None             # Document section
+    #heading: Optional[str] = None             # Nearest heading
+    #page_num: Optional[int] = None            # Page number
     previous_chunk_id: Optional[str] = None   # Previous chunk
     next_chunk_id: Optional[str] = None       # Next chunk
     

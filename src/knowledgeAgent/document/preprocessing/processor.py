@@ -1,59 +1,92 @@
 from src.knowledgeAgent.document.preprocessing.parser import _get_parser_for_type
 from src.knowledgeAgent.document.manager.document_manager import DocumentManager
+from src.knowledgeAgent.document.cache.sqllite import SqlLite
+import logging
 
 class DocumentProcessor:
-    """Orchestrates the document processing pipeline, to save raw files to postgres db ready to load into vector db.
-    """
-
-    def __init__(self,db):
-        self.document_manager = DocumentManager()
-        self.db = db
-
-    def preprocess(self, document_path, document_id):
-        document = self._initialise_document(document_path,document_id)
-        document = self._clean_document(document)
-        document = self._create_chunks(document)
-        document = self._create_metadata(document)
-        #self._cache_document(document)
-        return document 
+    """Orchestrates the document processing pipeline, to save raw files to postgres db ready to load into vector db."""
+    def __init__(self, db, llm_service):
+        self.document_manager = DocumentManager(llm_service=llm_service)
+        self.logger = logging.getLogger("knowledgeAgent.document")
     
-    def _initialise_document(self,document_path,document_id):
-        """Initialise the document object."""
-        document = self.document_manager.make_new_document(document_path,document_id)
-        return document
+        # Get database path from cache config
+        db_path = None
+        if isinstance(db, dict):
+            db_path = db.get('cache_location') or db.get('location')
+        elif hasattr(db, 'cache_location'):
+            db_path = db.cache_location
+        elif hasattr(db, 'db_path'):
+            db_path = db.db_path
+            
+        if not db_path:
+            self.logger.warning("No database path provided, using default")
+            
+        self.logger.info(f"Initializing database with path: {db_path}")
+        self.db = SqlLite(db_path=db_path)
 
-    def _clean_document(self, document):
-        """Clean the document."""
-        #document = self.document_manager.clean_document(document)
-        return document 
+    def process_document(self, document_path, document_id):
+        # Process new document
+        self.logger.info(f"Processing new document: {document_path}")
+        
+        # Initialize document
+        document = self._initialise_document(document_path, document_id)
+        if document is None:
+            self.logger.error("Failed to initialize document")
+            return None
+            
+        # Process document through pipeline
+        try:
+            document = self._create_chunks(document)
+            if document is None:
+                self.logger.error("Failed to create chunks")
+                return None
+                
+            document = self._create_metadata(document)
+            if document is None:
+                self.logger.error("Failed to create metadata")
+                return None
+                
+            self._save_document(document)
+            return document
+            
+        except Exception as e:
+            self.logger.error(f"Error processing document: {e}")
+            return None
+
+    def _initialise_document(self, document_path, document_id):
+        """Initialise the document object."""
+        try:
+            document = self.document_manager.make_new_document(document_path, document_id)
+            if document is None:
+                self.logger.error("Document manager returned None")
+                return None
+            self.logger.info(f"Document initialized with ID: {document.id}")
+            return document
+        except Exception as e:
+            self.logger.error(f"Error initializing document: {e}")
+            return None
     
     def _create_chunks(self, document):
+        document = self.document_manager.chunk_document(document)
+        document = self.document_manager.enrich_document_chunks(document)
         return document
     
     def _create_metadata(self, document):
+        document = self.document_manager.generate_document_level_metadata(document)
+        return document
+
+    def _save_document(self, document):
+        """Save document to SQLite"""
+        try:
+            if not self.db:
+                self.logger.warning("Database not initialized, skipping save")
+                return document
+                
+            self.db.save_document(document)
+            document.is_cached = True
+            self.logger.info(f"Document saved to database")
+        except Exception as e:
+            self.logger.error(f"Error saving to database: {e}")
         return document
 
 
-
-
-
-    # def build_document(self, path_to_document,persist):
-    #     """Sequence of operations to build a full document given the path to the document before then saving to a db"""
-    #     document = self.document_builder.create_template(path=path_to_document)
-    #     document = self.document_builder.create_hash(document_object=document)
-    #     document = self.document_builder.load_doc_into_langchain(document_object=document)
-    #     document = self.document_builder.pre_process(document_object=document)
-    #     document = self.document_builder.chunk_document(document_object=document)
-    #     document = self.document_builder.generate_summary(document_object=document, llm=self.llm) # generate summary before adding chunks as we use the summary as chunk metadata
-    #     document = self.document_builder.add_chunks(document_object=document, llm=self.llm)
-    #     document = self.document_builder.generate_title(document_object = document, llm =self.llm )
-    #     self._cache_document(document)
-    #     return document
-
-    # def _cache_document(self,document_object):
-    #     """Store the contents of the document object to SQL Lite DB"""
-    #     exists = self.db.doc_exists(document_object)
-    #     if exists:
-    #         print('Document Already Created')
-    #     else:
-    #         self.db.save_document(document_object)
