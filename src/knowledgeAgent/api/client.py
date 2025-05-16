@@ -224,6 +224,7 @@ class KnowledgeGraphClient:
             processing_results: Dictionary with processing statistics
         """
         # Implementation
+        self.knowledge_graph_service.extract_ontology(document_id)
         return {"status": "not_implemented", "document_id": document_id}
     
     # Graph Operations
@@ -303,6 +304,8 @@ if __name__ == "__main__":
             document_type="markdown",
             document_id="1234567890"
             )
+
+    client.extraxct_ontology(document_id="1234567890")
     
 
 

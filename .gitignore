@@ -24,3 +24,7 @@ opensource/
 developer.md
 
 archive/
+archived_code/
+
+.cursor/*
+.cursor/
