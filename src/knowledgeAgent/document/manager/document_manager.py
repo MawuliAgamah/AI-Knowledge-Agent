@@ -82,7 +82,7 @@ class DocumentManager:
         print(f"Chunking document {document.id}")
         
         # Create chunker with default strategy
-        chunker = Chunker()
+        chunker = Chunker(chunk_size=1000, chunk_overlap=200, chunker_type="structured_markdown")
         
 
         chunks = chunker.chunk_document(document)

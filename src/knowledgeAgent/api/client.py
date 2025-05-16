@@ -199,6 +199,9 @@ class KnowledgeGraphClient:
         self.logger.info(f"Document added with ID: {document_id}")
         return document_id
     
+    def delete_document(self,document_id: str):
+        self.document_service.delete_document(document_id)
+        self.logger.info(f"Document deleted with ID: {document_id}")
 
     def get_cached_document(self,document_id):
         document_object = self.db_client.get_document(document_id=document_id)
@@ -288,15 +291,16 @@ if __name__ == "__main__":
             "api_key": api_key
         })
 
+    client.delete_document(document_id="2")
 
-    #client.add_document(
-    #        document_path="/Users/mawuliagamah/obsidian vaults/Software Company/3. BookShelf/Books/Psychocybernetics Principles for Creative Living/Psycho-Cybernetics.md",
-    #        document_type="markdown",
-    #        )
-    #        document_id="1234567890"
+    client.add_document(
+            document_path="//Users/mawuliagamah/obsidian vaults/Software Company/3. BookShelf/Books/Fooled by Randomness.md",
+            document_type="markdown",
+            document_id="2"
+            )
     
     #client.get_cached_document(document_id="1234567890")
-    client.extract_document_ontology(document_id="1234567890")
+    client.extract_document_ontology(document_id="2")
     
     # document.display()
     client.close()

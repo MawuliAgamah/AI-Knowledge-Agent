@@ -1,7 +1,6 @@
 
 
 
-
 class KnowledgeGraphService:
     """Service for knowledge graph operations"""
     
@@ -76,5 +75,9 @@ class KnowledgeGraphService:
         
         return all_ontologies
 
+
+    def save_document_ontology(self, document_id, ontology):
+        """Save ontology to document"""
+        self.db_client.save_document_ontology(document_id, ontology)
 
     

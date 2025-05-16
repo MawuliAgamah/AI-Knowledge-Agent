@@ -36,6 +36,10 @@ class DocumentService:
             self.logger.error(f"Error adding document: {e}")
             return None
         
+    def delete_document(self,document_id: str):
+        self.db_client.delete_document(document_id)
+        self.logger.info(f"Document deleted with ID: {document_id}")
+        
 
     
     
