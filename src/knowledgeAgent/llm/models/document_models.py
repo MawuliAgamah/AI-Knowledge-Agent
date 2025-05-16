@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Dict, Optional, Literal, Union
+from pydantic import field_validator
 
 
 class TopicModel(BaseModel):
@@ -16,6 +17,5 @@ class KeyWordModel(BaseModel):
         description="Key terms from the text, max 3",
         max_length=3
     )
-
 
 

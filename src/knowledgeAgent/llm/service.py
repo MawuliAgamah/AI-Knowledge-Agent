@@ -8,7 +8,8 @@ import logging
 
 from src.knowledgeAgent.llm.models.document_models import TopicModel, KeyWordModel
 from src.knowledgeAgent.llm.prompts.templates import TOPICS_EXTRACTION_PROMPT, KEYWORD_EXTRACTION_PROMPT
-
+from src.knowledgeAgent.llm.models.kg_extraction_models import ChunkKnowledgeGraphExtraction
+from src.knowledgeAgent.llm.prompts.templates import ONTOLOGY_EXTRACTION_PROMPT
 
 
 class LLMService:
@@ -77,6 +78,25 @@ class LLMService:
             return output
         except Exception as e:
             self.logger.error(f"Error extracting keywords: {str(e)}")
+            raise
+
+
+    def extract_ontology(self, text):
+        """Extract ontology from text"""
+        self.logger.info("Extracting ontology from text")
+        try:
+            parser = JsonOutputParser(pydantic_object=ChunkKnowledgeGraphExtraction)
+            chain = ONTOLOGY_EXTRACTION_PROMPT | self.llm | parser
+            output = chain.invoke(
+                {
+                    "chunk": text,
+                    "format_instructions": parser.get_format_instructions()
+                }
+            )
+            self.logger.debug(f"Extracted ontology: {output}")
+            return output   
+        except Exception as e:
+            self.logger.error(f"Error extracting ontology: {str(e)}")
             raise
 
 
