@@ -75,7 +75,7 @@ They must fit into one of the categories below.
 - If there are multiple relationships between the same entities, include them all
 - EVERY entity mentioned must be included
 - Write concise but specific relationship descriptions
-- The context field for relationships should be a direct quote from the text
+
 
 # FORMAT REQUIREMENTS:
 {format_instructions}

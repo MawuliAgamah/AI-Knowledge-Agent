@@ -270,7 +270,6 @@ class StructuredMarkdownChunker:
         print(f"Created {len(text_chunks)} text chunks")
         return text_chunks
 
-
 class Chunker:
     """Handles document chunking with various strategies"""    
     def __init__(self, chunk_size=2000, chunk_overlap=200, chunker_type="auto"):

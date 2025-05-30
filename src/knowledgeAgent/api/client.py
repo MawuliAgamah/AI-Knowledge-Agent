@@ -294,10 +294,10 @@ if __name__ == "__main__":
     # client.delete_document(document_id="2")
 
     # client.add_document(
-    #         document_path="//Users/mawuliagamah/obsidian vaults/Software Company/3. BookShelf/Books/Fooled by Randomness.md",
-    #         document_type="markdown",
-    #         document_id="2"
-    #         )
+    #          document_path="//Users/mawuliagamah/obsidian vaults/Software Company/3. BookShelf/Books/Fooled by Randomness.md",
+    #          document_type="markdown",
+    #          document_id="2"
+    #          )
     
     #client.get_cached_document(document_id="1234567890")
     client.extract_document_ontology(document_id="2")
