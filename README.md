@@ -176,10 +176,8 @@ client = KnowledgeGraphClient(
 )
 ```
 
-## 🧠 AI Engineering Highlights
-
 ### Multi-Agent Collaboration
-The system implements a sophisticated multi-agent architecture where specialized AI agents collaborate to ensure high-quality knowledge extraction:
+The system implements a multi-agent architecture where specialized AI agents collaborate to ensure high-quality knowledge extraction:
 
 ```python
 # Three agents work in sequence:
@@ -210,72 +208,8 @@ class StructuredMarkdownChunker:
         # Falls back to character-based splitting when needed
 ```
 
-## 🏗️ Architecture Patterns Implemented
-
-- **Service-Oriented Architecture**: Clear separation between document processing, LLM operations, and knowledge graph management
-- **Factory Pattern**: Extensible document parser system for multiple file formats
-- **Strategy Pattern**: Pluggable chunking algorithms based on content type
-- **Observer Pattern**: Event-driven processing pipeline with comprehensive logging
-- **Repository Pattern**: Abstract database operations for multiple storage backends
-
-## 📊 Performance & Scalability
-
-- **Async Processing**: Non-blocking document processing pipeline
-- **Connection Pooling**: Efficient database connection management
-- **Caching Layer**: SQLite-based caching for processed documents
-- **Batch Processing**: Optimized for large document collections
-- **Memory Management**: Streaming document processing for large files
-
-## 🧪 Testing & Quality Assurance
-
-```bash
-# Run the test suite
-python -m pytest
-
-# Run with coverage
-python -m pytest --cov=src/knowledgeAgent
-
-# Integration tests
-python -m pytest tests/integration/
-```
-
-## 📈 Development Roadmap
-
-- [ ] GraphQL API for advanced querying
-- [ ] Real-time document processing with WebSocket support
-- [ ] Advanced visualization dashboard
-- [ ] Multi-language document support
-- [ ] Distributed processing with Celery
-- [ ] ML-based document classification
-
-## 🤝 Architecture Decisions
-
-### Why Multi-Agent Systems?
-- **Validation**: Multiple perspectives ensure higher accuracy
-- **Specialization**: Each agent optimized for specific tasks
-- **Iterative Improvement**: Self-correcting knowledge extraction
-
-### Database Strategy
-- **SQLite**: Fast caching and development
-- **Neo4j/Nebula**: Optimized graph traversal and queries  
-- **ChromaDB**: Semantic similarity and vector operations
-
-
 ## 📄 License
-
 MIT License - see [LICENSE.txt](LICENSE.txt) for details.
-
-## 🏢 Enterprise Features
-
-- **Audit Logging**: Complete processing trail for compliance
-- **Multi-tenant Support**: Isolated knowledge graphs per organization
-- **API Rate Limiting**: Configurable LLM usage controls
-- **Backup & Recovery**: Automated data backup strategies
-- **Monitoring**: Comprehensive metrics and health checks
-
----
-
-*Built with modern AI engineering practices, emphasizing scalability, maintainability, and production-readiness.*
 
 
 
