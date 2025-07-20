@@ -1,30 +1,109 @@
+# Environment and configuration files
 .env
-db
-.git
-.DS_Store
-.vscode
-.venv/
+.env.local
+.env.production
+.env.development
+**/.env*
 
-docs/
+# API Keys and credentials (just in case)
+**/api_keys.txt
+**/credentials.json
+**/config.json
+*.key
+*.pem
 
+# Personal data directories
+data/
+cache/
+logs/
+temp/
+build/
 
-**/.DS_Store
-**/.env
-**/__pycache__/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv
 
-/src/ai_module.egg-info/
+# Distribution / packaging
+dist/
 *.egg-info/
 
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
 
-**/archive/
-**/notebooks/
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
 
-opensource/
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-developer.md
+# Database files
+*.db
+*.sqlite
+*.sqlite3
 
-archive/
-archived_code/
+# Personal documents and vaults
+**/obsidian*
+**/vaults/
+**/personal/
+sample_documents/
 
-.cursor/*
-.cursor/
+# Documentation and notebooks (development artifacts)
+docs/
+notebooks/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+
+# Virtual environments
+bin/
+include/
+lib/
+lib64/
+share/
+pyvenv.cfg

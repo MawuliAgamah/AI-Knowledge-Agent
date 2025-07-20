@@ -435,7 +435,8 @@ This is section 2 content.
 
 if __name__ == "__main__":
     import sys
-    file_path = "/Users/mawuliagamah/obsidian vaults/Software Company/3. BookShelf/Books/Psychocybernetics Principles for Creative Living/Psycho-Cybernetics.md"
+    # Use sample file for testing
+    file_path = "./sample_documents/sample.md" if len(sys.argv) < 2 else sys.argv[1]
     test_markdown_chunker(file_path)
 
 
