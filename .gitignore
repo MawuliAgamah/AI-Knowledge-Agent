@@ -80,6 +80,13 @@ sample_documents/
 docs/
 notebooks/
 
+# Cursor IDE files
+.cursor/
+.cursorrules
+cursor.json
+.cursor-settings
+*.cursor-*
+
 # Jupyter Notebook
 .ipynb_checkpoints
 
