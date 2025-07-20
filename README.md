@@ -151,31 +151,6 @@ document_id = client.add_document(
 client.extract_document_ontology(document_id)
 ```
 
-### Advanced Configuration
-```python
-# Enterprise configuration with custom chunking
-client = KnowledgeGraphClient(
-    graph_db_config=GraphDatabaseConfig(
-        db_type="neo4j",
-        host="production-server.com",
-        port=7687,
-        database="enterprise_kg",
-        pool_size=20,
-        max_overflow=30
-    ),
-    db_config={
-        "db_type": "sqlite",
-        "db_location": "/data/cache/documents.db"
-    },
-    llm_config={
-        "model": "gpt-4",
-        "temperature": 0.1,
-        "api_key": os.getenv("OPENAI_API_KEY")
-    },
-    log_level="DEBUG"
-)
-```
-
 ### Multi-Agent Collaboration
 The system implements a multi-agent architecture where specialized AI agents collaborate to ensure high-quality knowledge extraction:
 
